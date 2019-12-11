@@ -97,7 +97,7 @@ func Test_t1(t *testing.T) {
 
 	fmt.Println("end of block.")
 
-	//blockchain.tryAppendNewBlockToChain()
+	//blockchain.TryValidateAppendNewBlockToChainStateAndStore()
 
 }
 

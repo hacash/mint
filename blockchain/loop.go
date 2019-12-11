@@ -12,7 +12,7 @@ func (bc *BlockChain) loop() {
 
 		case newblk := <-bc.newBlockArriveQueueCh:
 			//fmt.Println(newblk)
-			err := bc.tryAppendNewBlockToChain(newblk)
+			err := bc.TryValidateAppendNewBlockToChainStateAndStore(newblk)
 			if err != nil {
 				fmt.Println("try Append New Block To Chain Error:", err)
 				os.Exit(0) // test

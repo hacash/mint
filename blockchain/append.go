@@ -17,7 +17,13 @@ const (
 	time_format_layout = "01/02 15:04:05"
 )
 
-func (bc *BlockChain) tryAppendNewBlockToChain(newblock interfaces.Block) error {
+// interface api
+func (bc *BlockChain) InsertBlock(newblock interfaces.Block) error {
+	return bc.TryValidateAppendNewBlockToChainStateAndStore(newblock)
+}
+
+// append block
+func (bc *BlockChain) TryValidateAppendNewBlockToChainStateAndStore(newblock interfaces.Block) error {
 
 	prevblock, e1 := bc.chainstate.ReadLastestBlockHeadAndMeta()
 	if e1 != nil {
@@ -149,6 +155,10 @@ func (bc *BlockChain) tryAppendNewBlockToChain(newblock interfaces.Block) error 
 	if bc.power != nil {
 		bc.power.ArriveValidatedBlockHeight(newBlockHeight)
 	}
+
+	// send feed
+	bc.validatedBlockInsertFeed.Send(newblock)
+
 	// return
 	return nil
 }

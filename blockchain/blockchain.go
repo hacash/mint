@@ -1,6 +1,7 @@
 package blockchain
 
 import (
+	"github.com/ethereum/go-ethereum/event"
 	"github.com/hacash/chain/chainstate"
 	"github.com/hacash/chain/chainstore"
 	"github.com/hacash/core/interfaces"
@@ -16,9 +17,14 @@ type BlockChain struct {
 	newBlockArriveQueueCh       chan interfaces.Block
 	newTransactionArriveQueueCh chan interfaces.Transaction
 
-	power interfaces.PowMaster
+	////////////////////////
 
+	power  interfaces.PowMaster
 	txpool interfaces.TxPool
+
+	////////////////////////
+
+	validatedBlockInsertFeed event.Feed
 
 	////////////////////////
 
@@ -59,4 +65,13 @@ func (bc *BlockChain) Start() {
 
 	go bc.loop()
 
+}
+
+func (bc *BlockChain) SubscribeValidatedBlockOnInsert(blockCh chan interfaces.Block) {
+	bc.validatedBlockInsertFeed.Subscribe(blockCh)
+}
+
+// interface api
+func (bc *BlockChain) State() interfaces.ChainStateOperation {
+	return bc.chainstate
 }
