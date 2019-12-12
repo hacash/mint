@@ -42,7 +42,7 @@ func NewBlockChain(config *BlockChainConfig) (*BlockChain, error) {
 		return nil, e1
 	}
 	stocnf := blockstore.NewEmptyBlockStoreConfig()
-	stocnf.Datadir = path.Join(config.datadir, "chainstore")
+	stocnf.Datadir = path.Join(config.datadir, "blockstore")
 	stobject, e2 := blockstore.NewBlockStore(stocnf)
 	if e2 != nil {
 		return nil, e2
