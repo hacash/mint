@@ -1,7 +1,6 @@
 package blockchain
 
 import (
-	"github.com/hacash/core/inicnf"
 	"github.com/hacash/core/sys"
 )
 
@@ -9,24 +8,18 @@ type BlockChainConfig struct {
 	datadir string
 }
 
-func NewBlockChainConfig(datadir string) *BlockChainConfig {
-	cnf := &BlockChainConfig{
-		datadir: datadir,
-	}
+func NewEmptyBlockChainConfig() *BlockChainConfig {
+	cnf := &BlockChainConfig{}
 	return cnf
 }
 
 //////////////////////////////////////////////////
 
-func NewBlockChainByIniCnf(cnffile *inicnf.File) (*BlockChain, error) {
+func NewBlockChainConfig(cnffile *sys.Inicnf) *BlockChainConfig {
+	cnf := NewEmptyBlockChainConfig()
 
-	data_dir := sys.CnfMustDataDir(cnffile.Section("").Key("data_dir").String())
+	cnf.datadir = cnffile.MustDataDir()
 
-	cnf := NewBlockChainConfig(data_dir)
-	blockchain, e1 := NewBlockChain(cnf)
-	if e1 != nil {
-		return nil, e1
-	}
+	return cnf
 
-	return blockchain, nil
 }

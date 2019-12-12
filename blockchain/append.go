@@ -114,7 +114,7 @@ func (bc *BlockChain) TryValidateAppendNewBlockToChainStateAndStore(newblock int
 		return fmt.Errorf(errmsgprifix + "Block signature verify faild.")
 	}
 	// 判断包含交易是否已经存在
-	blockstore := bc.chainstate.ChainStore()
+	blockstore := bc.chainstate.BlockStore()
 	for i := 1; i < len(newblktxs); i++ { // ignore coinbase tx
 		txhashnofee := newblktxs[i].Hash()
 		ok, e := blockstore.TransactionIsExist(txhashnofee)

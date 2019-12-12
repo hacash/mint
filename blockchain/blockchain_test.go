@@ -19,7 +19,8 @@ func Test_t1(t *testing.T) {
 
 	os.RemoveAll(testdir)
 
-	cnf := NewBlockChainConfig(testdir)
+	cnf := NewEmptyBlockChainConfig()
+	cnf.datadir = testdir
 	blockchain, e1 := NewBlockChain(cnf)
 	if e1 != nil {
 		fmt.Println(e1)

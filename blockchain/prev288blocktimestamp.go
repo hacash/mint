@@ -28,8 +28,8 @@ func (bc *BlockChain) ReadPrev288BlockTimestamp(blkheight uint64) (uint64, error
 		bc.prev288BlockTimestamp = make(map[uint64]uint64) // clean
 	}
 	// read
-	chainstore := bc.chainstate.ChainStore()
-	prev288blockheaddatas, e2 := chainstore.ReadBlockHeadBytesByHeight(prev288height)
+	blockstore := bc.chainstate.BlockStore()
+	prev288blockheaddatas, e2 := blockstore.ReadBlockHeadBytesByHeight(prev288height)
 	if e2 != nil {
 		return 0, e2
 	}
