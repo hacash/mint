@@ -5,8 +5,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/hacash/core/blocks"
-	"github.com/hacash/core/fields"
-	"github.com/hacash/core/stores"
 	"golang.org/x/net/websocket"
 	"os"
 	"strconv"
@@ -27,20 +25,6 @@ func Test_t1(t *testing.T) {
 		return
 	}
 	blockchain.Start()
-
-	// test
-	if true {
-
-		addr1, _ := fields.CheckReadableAddress("12vi7DEZjh6KrK5PVmmqSgvuJPCsZMmpfi")
-		addr2, _ := fields.CheckReadableAddress("1LsQLqkd8FQDh3R7ZhxC5fndNf92WfhM19")
-		addr3, _ := fields.CheckReadableAddress("1NUgKsTgM6vQ5nxFHGz1C4METaYTPgiihh")
-		amt1, _ := fields.NewAmountFromFinString("ㄜ1:244")
-		amt2, _ := fields.NewAmountFromFinString("ㄜ12:244")
-		blockchain.chainstate.BalanceSet(*addr1, stores.NewBalanceWithAmount(amt2))
-		blockchain.chainstate.BalanceSet(*addr2, stores.NewBalanceWithAmount(amt1))
-		blockchain.chainstate.BalanceSet(*addr3, stores.NewBalanceWithAmount(amt1))
-
-	}
 
 	// websocket
 

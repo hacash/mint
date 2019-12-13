@@ -7,6 +7,7 @@ import (
 	"github.com/hacash/core/blocks"
 	"github.com/hacash/core/fields"
 	"github.com/hacash/core/interfaces"
+	"github.com/hacash/core/stores"
 	"github.com/hacash/core/transactions"
 	"github.com/hacash/mint/coinbase"
 	"math/big"
@@ -19,11 +20,11 @@ const (
 
 // interface api
 func (bc *BlockChain) InsertBlock(newblock interfaces.Block) error {
-	return bc.TryValidateAppendNewBlockToChainStateAndStore(newblock)
+	return bc.tryValidateAppendNewBlockToChainStateAndStore(newblock)
 }
 
 // append block
-func (bc *BlockChain) TryValidateAppendNewBlockToChainStateAndStore(newblock interfaces.Block) error {
+func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock interfaces.Block) error {
 
 	prevblock, e1 := bc.chainstate.ReadLastestBlockHeadAndMeta()
 	if e1 != nil {
@@ -133,6 +134,10 @@ func (bc *BlockChain) TryValidateAppendNewBlockToChainStateAndStore(newblock int
 	newBlockChainState.SetPendingBlockHeight(newBlockHeight) // set pending
 	newBlockChainState.SetPendingBlockHash(newBlockHash)     // set pending
 	defer newBlockChainState.DestoryTemporary()
+	// setup debug
+	if newblock.GetHeight() == 1 {
+		setupDebugChainState(newBlockChainState) // first state setup
+	}
 	err2 := newblock.WriteinChainState(newBlockChainState)
 	if err2 != nil {
 		return err2
@@ -161,4 +166,18 @@ func (bc *BlockChain) TryValidateAppendNewBlockToChainStateAndStore(newblock int
 
 	// return
 	return nil
+}
+
+// first debug amount
+func setupDebugChainState(chainstate interfaces.ChainStateOperation) {
+
+	addr1, _ := fields.CheckReadableAddress("12vi7DEZjh6KrK5PVmmqSgvuJPCsZMmpfi")
+	addr2, _ := fields.CheckReadableAddress("1LsQLqkd8FQDh3R7ZhxC5fndNf92WfhM19")
+	addr3, _ := fields.CheckReadableAddress("1NUgKsTgM6vQ5nxFHGz1C4METaYTPgiihh")
+	amt1, _ := fields.NewAmountFromFinString("ㄜ1:244")
+	amt2, _ := fields.NewAmountFromFinString("ㄜ12:244")
+	chainstate.BalanceSet(*addr1, stores.NewBalanceWithAmount(amt2))
+	chainstate.BalanceSet(*addr2, stores.NewBalanceWithAmount(amt1))
+	chainstate.BalanceSet(*addr3, stores.NewBalanceWithAmount(amt1))
+
 }
