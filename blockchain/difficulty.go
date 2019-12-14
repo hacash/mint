@@ -1,17 +1,13 @@
 package blockchain
 
 import (
+	"github.com/hacash/core/interfaces"
 	"github.com/hacash/mint"
 	"github.com/hacash/mint/difficulty"
 	"math/big"
 )
 
-func (bc *BlockChain) CalculateNextTargetDiffculty() ([]byte, *big.Int, uint32, error) {
-
-	lastestBlock, e1 := bc.chainstate.ReadLastestBlockHeadAndMeta()
-	if e1 != nil {
-		return nil, nil, 0, e1
-	}
+func (bc *BlockChain) CalculateNextDiffculty(lastestBlock interfaces.Block) ([]byte, *big.Int, uint32, error) {
 
 	newBlockHeight := lastestBlock.GetHeight() + 1
 
@@ -35,4 +31,15 @@ func (bc *BlockChain) CalculateNextTargetDiffculty() ([]byte, *big.Int, uint32, 
 		nil,
 	)
 	return res1, res2, res3, nil
+
+}
+
+func (bc *BlockChain) CalculateNextTargetDiffculty() ([]byte, *big.Int, uint32, error) {
+
+	lastestBlock, e1 := bc.chainstate.ReadLastestBlockHeadAndMeta()
+	if e1 != nil {
+		return nil, nil, 0, e1
+	}
+
+	return bc.CalculateNextDiffculty(lastestBlock)
 }

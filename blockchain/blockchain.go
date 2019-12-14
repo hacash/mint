@@ -5,6 +5,7 @@ import (
 	"github.com/hacash/chain/blockstore"
 	"github.com/hacash/chain/chainstate"
 	"github.com/hacash/core/interfaces"
+	"github.com/hacash/core/stores"
 	"path"
 	"sync"
 )
@@ -14,23 +15,23 @@ type BlockChain struct {
 
 	chainstate *chainstate.ChainState
 
-	newBlockArriveQueueCh       chan interfaces.Block
-	newTransactionArriveQueueCh chan interfaces.Transaction
-
-	////////////////////////
-
-	power  interfaces.PowMaster
-	txpool interfaces.TxPool
+	//newBlockArriveQueueCh       chan interfaces.Block
+	//newTransactionArriveQueueCh chan interfaces.Transaction
 
 	////////////////////////
 
 	validatedBlockInsertFeed event.Feed
+	diamondCreateFeed        event.Feed
 
 	////////////////////////
 
 	// data cache
 	prev288BlockTimestamp       map[uint64]uint64
 	prev288BlockTimestampLocker sync.Mutex
+
+	////////////////////////
+
+	insertLock sync.Mutex
 }
 
 func NewBlockChain(config *BlockChainConfig) (*BlockChain, error) {
@@ -53,11 +54,11 @@ func NewBlockChain(config *BlockChainConfig) (*BlockChain, error) {
 	}
 	// new
 	blockchain := &BlockChain{
-		config:                      config,
-		chainstate:                  csobject,
-		newBlockArriveQueueCh:       make(chan interfaces.Block, 10),
-		newTransactionArriveQueueCh: make(chan interfaces.Transaction, 50),
-		prev288BlockTimestamp:       map[uint64]uint64{},
+		config:     config,
+		chainstate: csobject,
+		// newBlockArriveQueueCh:       make(chan interfaces.Block, 10),
+		// newTransactionArriveQueueCh: make(chan interfaces.Transaction, 50),
+		prev288BlockTimestamp: map[uint64]uint64{},
 	}
 	// return
 	return blockchain, nil
@@ -71,6 +72,10 @@ func (bc *BlockChain) Start() {
 
 func (bc *BlockChain) SubscribeValidatedBlockOnInsert(blockCh chan interfaces.Block) {
 	bc.validatedBlockInsertFeed.Subscribe(blockCh)
+}
+
+func (bc *BlockChain) SubscribeDiamondOnCreate(diamondCh chan *stores.DiamondSmelt) {
+	bc.diamondCreateFeed.Subscribe(diamondCh)
 }
 
 // interface api

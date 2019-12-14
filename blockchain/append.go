@@ -25,7 +25,9 @@ func (bc *BlockChain) InsertBlock(newblock interfaces.Block) error {
 
 // append block
 func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock interfaces.Block) error {
-
+	bc.insertLock.Lock()
+	defer bc.insertLock.Unlock()
+	// insert
 	prevblock, e1 := bc.chainstate.ReadLastestBlockHeadAndMeta()
 	if e1 != nil {
 		return e1
@@ -91,7 +93,7 @@ func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock int
 	}
 	// check hash difficulty
 	newblockDiffBigValue := new(big.Int).SetBytes(newBlockHash)
-	taregetDiffHash, targetDiffBigValue, _, e5 := bc.CalculateNextTargetDiffculty()
+	taregetDiffHash, targetDiffBigValue, _, e5 := bc.CalculateNextDiffculty(prevblock)
 	if e5 != nil {
 		return e5
 	}
@@ -147,21 +149,19 @@ func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock int
 	if err3 != nil {
 		return err3
 	}
+	diamondCreate, err5 := newBlockChainState.GetPendingSubmitStoreDiamond()
+	if err5 != nil {
+		return err5
+	}
 	err4 := bc.chainstate.SubmitDataStoreWriteToInvariableDisk(newblock)
 	if err4 != nil {
 		return err4
 	}
 	// ok
-	// clear data
-	if bc.txpool != nil {
-		bc.txpool.RemoveTxs(newblktxs)
-	}
-	// notify pow worker
-	if bc.power != nil {
-		bc.power.ArriveValidatedBlockHeight(newBlockHeight)
-	}
-
 	// send feed
+	if diamondCreate != nil {
+		bc.diamondCreateFeed.Send(diamondCreate)
+	}
 	bc.validatedBlockInsertFeed.Send(newblock)
 
 	// return
