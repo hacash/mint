@@ -118,9 +118,6 @@ func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock int
 		if newblktxs[i].GetTimestamp() > timenow {
 			return fmt.Errorf(errmsgprifix+"Tx timestamps %d is not more than now %d.", newblktxs[i].GetTimestamp(), timenow)
 		}
-		if newblktxs[i].GetTimestamp() > newBlockTimestamp {
-			return fmt.Errorf(errmsgprifix+"Tx timestamps %d is not more than block timestamp %d.", newblktxs[i].GetTimestamp(), newBlockTimestamp)
-		}
 		txhashnofee := newblktxs[i].Hash()
 		ok, e := blockstore.TransactionIsExist(txhashnofee)
 		if e != nil {
