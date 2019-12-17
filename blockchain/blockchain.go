@@ -1,11 +1,11 @@
 package blockchain
 
 import (
-	"github.com/ethereum/go-ethereum/event"
 	"github.com/hacash/chain/blockstore"
 	"github.com/hacash/chain/chainstate"
 	"github.com/hacash/core/interfaces"
 	"github.com/hacash/core/stores"
+	"github.com/hacash/mint/event"
 	"path"
 	"sync"
 )

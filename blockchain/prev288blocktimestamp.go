@@ -6,15 +6,15 @@ import (
 	"github.com/hacash/mint"
 )
 
-func (bc *BlockChain) ReadPrev288BlockTimestamp(blkheight uint64) (uint64, error) {
+func (bc *BlockChain) ReadPrev288BlockTimestamp(blockHeight uint64) (uint64, error) {
 	bc.prev288BlockTimestampLocker.Lock()
 	defer bc.prev288BlockTimestampLocker.Unlock()
 
-	if blkheight < 288 {
-		return genesis.GetGenesisBlock().GetHeight(), nil // genesis block
+	if blockHeight <= mint.AdjustTargetDifficultyNumberOfBlocks {
+		return genesis.GetGenesisBlock().GetTimestamp(), nil // genesis block
 	}
 
-	blkheight -= 1
+	blkheight := blockHeight - 1
 
 	prev288height := blkheight / mint.AdjustTargetDifficultyNumberOfBlocks * mint.AdjustTargetDifficultyNumberOfBlocks
 
@@ -40,6 +40,9 @@ func (bc *BlockChain) ReadPrev288BlockTimestamp(blkheight uint64) (uint64, error
 	prev288timestamp := prev288block.GetTimestamp()
 	// cache
 	bc.prev288BlockTimestamp[prev288height] = prev288timestamp
+
+	//fmt.Println("******************* bc.chainstate.ChainStore ReadPrev288BlockTimestamp  read blockHeight:", blockHeight, "  prev288height:", prev288height, "time", prev288timestamp, "time", time.Unix(int64(prev288timestamp), 0).Format(Time_format_layout))
+
 	// return ok
 	return prev288timestamp, nil
 }

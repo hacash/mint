@@ -13,7 +13,7 @@ func (bc *BlockChain) CalculateNextDiffculty(lastestBlock interfaces.Block) ([]b
 
 	// check hash difficulty
 	var prev288BlockTimestamp uint64 = 0
-	if newBlockHeight%mint.AdjustTargetDifficultyNumberOfBlocks != 0 {
+	if newBlockHeight%mint.AdjustTargetDifficultyNumberOfBlocks == 0 {
 		// read prev288BlockTimestamp value
 		t, e := bc.ReadPrev288BlockTimestamp(newBlockHeight)
 		if e != nil {
@@ -21,6 +21,9 @@ func (bc *BlockChain) CalculateNextDiffculty(lastestBlock interfaces.Block) ([]b
 		}
 		prev288BlockTimestamp = t
 	}
+
+	//var change string = ""
+
 	res1, res2, res3 := difficulty.CalculateNextTarget(
 		lastestBlock.GetDifficulty(),
 		newBlockHeight,
@@ -28,8 +31,9 @@ func (bc *BlockChain) CalculateNextDiffculty(lastestBlock interfaces.Block) ([]b
 		lastestBlock.GetTimestamp(),
 		mint.EachBlockRequiredTargetTime,
 		mint.AdjustTargetDifficultyNumberOfBlocks,
-		nil,
+		nil, // &change,
 	)
+
 	return res1, res2, res3, nil
 
 }

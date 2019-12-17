@@ -9,13 +9,14 @@ import (
 	"github.com/hacash/core/interfaces"
 	"github.com/hacash/core/stores"
 	"github.com/hacash/core/transactions"
+	"github.com/hacash/mint"
 	"github.com/hacash/mint/coinbase"
 	"math/big"
 	"time"
 )
 
 const (
-	time_format_layout = "01/02 15:04:05"
+	Time_format_layout = "01/02 15:04:05"
 )
 
 // interface api
@@ -50,14 +51,14 @@ func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock int
 	}
 	// check time now
 	if int64(newBlockTimestamp) >= int64(time.Now().Unix()) {
-		createtime := time.Unix(int64(newBlockTimestamp), 0).Format(time_format_layout)
-		nowtime := time.Now().Format(time_format_layout)
+		createtime := time.Unix(int64(newBlockTimestamp), 0).Format(Time_format_layout)
+		nowtime := time.Now().Format(Time_format_layout)
 		return fmt.Errorf(errmsgprifix+"Block create timestamp cannot equal or more than now %s but got %s.", nowtime, createtime)
 	}
 	// check time prev
 	if int64(newBlockTimestamp) <= int64(prevblock.GetTimestamp()) {
-		prevtime := time.Unix(int64(prevblock.GetTimestamp()), 0).Format(time_format_layout)
-		currtime := time.Unix(int64(newBlockTimestamp), 0).Format(time_format_layout)
+		prevtime := time.Unix(int64(prevblock.GetTimestamp()), 0).Format(Time_format_layout)
+		currtime := time.Unix(int64(newBlockTimestamp), 0).Format(Time_format_layout)
 		return fmt.Errorf(errmsgprifix+"Block create timestamp cannot equal or less than prev %s but got %s.", prevtime, currtime)
 	}
 	// check tx count
@@ -93,20 +94,13 @@ func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock int
 	}
 	// check hash difficulty
 	newblockDiffBigValue := new(big.Int).SetBytes(newBlockHash)
-	taregetDiffHash, targetDiffBigValue, _, e5 := bc.CalculateNextDiffculty(prevblock)
+	targetDiffHash, targetDiffBigValue, _, e5 := bc.CalculateNextDiffculty(prevblock)
 	if e5 != nil {
 		return e5
 	}
 	if newblockDiffBigValue.Cmp(targetDiffBigValue) == 1 {
-		if /*newBlockHeight == 27936 ||
-		newBlockHeight == 28224 ||
-		newBlockHeight == 31104 ||
-		newBlockHeight == 34560 ||*/
-		newBlockHeight == 0 {
+		return fmt.Errorf(errmsgprifix+"Maximum accepted hash diffculty is %s but got %s.", hex.EncodeToString(targetDiffHash), newBlockHashHexStr)
 
-		} else {
-			return fmt.Errorf(errmsgprifix+"Maximum accepted hash diffculty is %s but got %s.", hex.EncodeToString(taregetDiffHash), newBlockHashHexStr)
-		}
 	}
 	// 检查验证全部交易签名
 	sigok, e6 := newblock.VerifyNeedSigns()
@@ -116,9 +110,17 @@ func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock int
 	if sigok != true {
 		return fmt.Errorf(errmsgprifix + "Block signature verify faild.")
 	}
-	// 判断包含交易是否已经存在
+	// 判断包含交易是否已经存在 和 区块大小 和 交易时间戳
+	timenow := uint64(time.Now().Unix())
+	totaltxsize := uint32(0)
 	blockstore := bc.chainstate.BlockStore()
 	for i := 1; i < len(newblktxs); i++ { // ignore coinbase tx
+		if newblktxs[i].GetTimestamp() > timenow {
+			return fmt.Errorf(errmsgprifix+"Tx timestamps %d is not more than now %d.", newblktxs[i].GetTimestamp(), timenow)
+		}
+		if newblktxs[i].GetTimestamp() > newBlockTimestamp {
+			return fmt.Errorf(errmsgprifix+"Tx timestamps %d is not more than block timestamp %d.", newblktxs[i].GetTimestamp(), newBlockTimestamp)
+		}
 		txhashnofee := newblktxs[i].Hash()
 		ok, e := blockstore.TransactionIsExist(txhashnofee)
 		if e != nil {
@@ -127,6 +129,10 @@ func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock int
 		if ok == true {
 			return fmt.Errorf(errmsgprifix+"Tx %s is exist.", txhashnofee.ToHex())
 		}
+		totaltxsize += newblktxs[i].Size()
+	}
+	if totaltxsize > mint.SingleBlockMaxSize {
+		return fmt.Errorf(errmsgprifix+"Txs total size %d is overflow max size %d.", totaltxsize, mint.SingleBlockMaxSize)
 	}
 	// 执行验证区块的每一笔交易
 	newBlockChainState, e7 := bc.chainstate.NewSubBranchTemporaryChainState()
@@ -162,7 +168,7 @@ func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock int
 	if diamondCreate != nil {
 		bc.diamondCreateFeed.Send(diamondCreate)
 	}
-	bc.validatedBlockInsertFeed.Send(newblock)
+	bc.validatedBlockInsertFeed.Send(interfaces.Block(newblock))
 
 	// return
 	return nil

@@ -3,7 +3,7 @@ package coinbase
 import (
 	"encoding/binary"
 	"github.com/hacash/core/fields"
-	"github.com/hacash/core/transactions"
+	"github.com/hacash/core/interfaces"
 )
 
 //
@@ -15,7 +15,12 @@ func ParseMinerPoolCoinbaseMessage(msgwords string, minernum uint32) [16]byte {
 }
 
 //
-func UpdateCoinbaseMessageForMinerPool(tx transactions.Transaction_0_Coinbase, minernum uint32) {
-	newmsg := ParseMinerPoolCoinbaseMessage(string(tx.Message), minernum)
-	tx.Message = fields.TrimString16(string(newmsg[:]))
+func UpdateCoinbaseMessageForMiner(tx interfaces.Transaction, minernum uint32) {
+	newmsg := ParseMinerPoolCoinbaseMessage(string(tx.GetMessage()), minernum)
+	tx.SetMessage(fields.TrimString16(string(newmsg[:])))
+}
+
+//
+func UpdateBlockCoinbaseMessageForMiner(block interfaces.Block, minernum uint32) {
+	UpdateCoinbaseMessageForMiner(block.GetTransactions()[0], minernum)
 }

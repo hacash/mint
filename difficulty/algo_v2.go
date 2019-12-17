@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	lowestDifficultyCompact       = uint32(4294967294) // 首次调整难度前的预设难度值
+	LowestDifficultyCompact       = uint32(4294967294) // 首次调整难度前的预设难度值
 	usedVersionV2AboveBlockHeight = uint64(288 * 160)  // 从第 160 个难度周期后开始使用新算法
 )
 
@@ -27,7 +27,7 @@ func CalculateNextTarget(
 	printInfo *string,
 ) ([]byte, *big.Int, uint32) {
 	if lastestBits == 0 {
-		lastestBits = lowestDifficultyCompact // deal genesis block
+		lastestBits = LowestDifficultyCompact // deal genesis block
 	}
 	// 使用新版
 	if currentHeight >= usedVersionV2AboveBlockHeight {
