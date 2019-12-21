@@ -4,7 +4,6 @@ import (
 	"github.com/hacash/chain/blockstore"
 	"github.com/hacash/chain/chainstate"
 	"github.com/hacash/core/interfaces"
-	"github.com/hacash/core/stores"
 	"github.com/hacash/mint/event"
 	"path"
 	"sync"
@@ -68,14 +67,6 @@ func (bc *BlockChain) Start() {
 
 	go bc.loop()
 
-}
-
-func (bc *BlockChain) SubscribeValidatedBlockOnInsert(blockCh chan interfaces.Block) {
-	bc.validatedBlockInsertFeed.Subscribe(blockCh)
-}
-
-func (bc *BlockChain) SubscribeDiamondOnCreate(diamondCh chan *stores.DiamondSmelt) {
-	bc.diamondCreateFeed.Subscribe(diamondCh)
 }
 
 // interface api

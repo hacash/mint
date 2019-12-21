@@ -42,8 +42,6 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfaces.Transacti
 		// add
 		nextblock.AddTransaction(tx)
 	}
-	// change mkrl root
-	nextblock.SetMrklRoot(blocks.CalculateMrklRoot(nextblock.GetTransactions()))
 
 	// ok return
 	return nextblock, totaltxssize, nil

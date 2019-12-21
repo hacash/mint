@@ -165,7 +165,9 @@ func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock int
 	if diamondCreate != nil {
 		bc.diamondCreateFeed.Send(diamondCreate)
 	}
-	bc.validatedBlockInsertFeed.Send(interfaces.Block(newblock))
+	if newblock.OriginMark() != "" {
+		bc.validatedBlockInsertFeed.Send(interfaces.Block(newblock))
+	}
 
 	// return
 	return nil
