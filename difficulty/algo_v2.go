@@ -31,6 +31,10 @@ func CalculateNextTarget(
 	}
 	// 使用新版
 	if currentHeight >= usedVersionV2AboveBlockHeight {
+		if currentHeight >= uint64(288*450) { // 129600
+			// 以前代码实际只查询了前287个区块的总用时，某个高度之后加上300秒，变为查询288个
+			lastestTimestamp += eachblocktime
+		}
 		return DifficultyCalculateNextTarget_v2(lastestBits, currentHeight, prev288BlockTimestamp, lastestTimestamp, eachblocktime, changeblocknum, printInfo)
 	}
 	// 最旧版
@@ -95,8 +99,6 @@ func DifficultyCalculateNextTarget_v2(
 	changeblocknum uint64,
 	printInfo *string,
 ) ([]byte, *big.Int, uint32) {
-
-	// lastTimestamp += eachblocktime // 299 block time + 1 block time
 
 	powTargetTimespan := time.Second * time.Duration(eachblocktime*changeblocknum) // 一分钟一个快
 	// 如果新区块height不是 288 的整数倍，则不需要更新，仍然是最后一个区块的 bits
