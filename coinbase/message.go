@@ -24,3 +24,13 @@ func UpdateCoinbaseMessageForMiner(tx interfaces.Transaction, minernum uint32) {
 func UpdateBlockCoinbaseMessageForMiner(block interfaces.Block, minernum uint32) {
 	UpdateCoinbaseMessageForMiner(block.GetTransactions()[0], minernum)
 }
+
+//
+func UpdateCoinbaseMessage(tx interfaces.Transaction, msgstr string) {
+	tx.SetMessage(fields.TrimString16(string(msgstr[:])))
+}
+
+//
+func UpdateBlockCoinbaseMessage(block interfaces.Block, msgstr string) {
+	UpdateCoinbaseMessage(block.GetTransactions()[0], msgstr)
+}
