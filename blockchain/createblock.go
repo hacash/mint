@@ -29,18 +29,38 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfaces.Transacti
 	}
 	// coinbase tx
 	nextblock.AddTransaction(coinbase.CreateCoinbaseTx(nextblock.GetHeight()))
+	// state run
+	blockTempState, e2 := bc.chainstate.NewSubBranchTemporaryChainState()
+	if e2 != nil {
+		return nil, 0, e2
+	}
+	blockTempState.SetPendingBlockHeight(nextblock.GetHeight())
+	defer blockTempState.DestoryTemporary()
 	// append tx
 	totaltxs := uint32(0)
 	totaltxssize := uint32(0)
 	for _, tx := range txlist {
-
 		totaltxs += 1
 		totaltxssize += tx.Size()
 		if totaltxs > 2000 || totaltxssize > mint.SingleBlockMaxSize {
 			break // overflow block max size or max num
 		}
-		// add
-		nextblock.AddTransaction(tx)
+		txTempState, e1 := blockTempState.NewSubBranchTemporaryChainState()
+		if e1 != nil {
+			return nil, 0, e1
+		}
+		err := tx.WriteinChainState(txTempState)
+		if err == nil {
+			// add
+			nextblock.AddTransaction(tx)
+			e1 := blockTempState.MergeCoverWriteChainState(txTempState)
+			if e1 != nil {
+				return nil, 0, e1
+			}
+		}
+		// clear
+		txTempState.DestoryTemporary()
+		// next
 	}
 
 	// ok return

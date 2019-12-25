@@ -163,6 +163,7 @@ func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock int
 	// ok
 	// send feed
 	if diamondCreate != nil {
+		// fmt.Println("diamondCreate bc.diamondCreateFeed.Send(diamondCreate), ", diamondCreate, diamondCreate.Diamond, diamondCreate.Number)
 		bc.diamondCreateFeed.Send(diamondCreate)
 	}
 	if newblock.OriginMark() != "" {
