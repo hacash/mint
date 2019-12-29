@@ -11,7 +11,9 @@ func (bc *BlockChain) ValidateTransaction(newtx interfaces.Transaction) error {
 	newtxhash := newtx.Hash()
 	txhxhex := newtxhash.ToHex()
 	blockstore := bc.chainstate.BlockStore()
-	exist, e0 := blockstore.TransactionIsExist(newtx.Hash())
+	exist, e0 := blockstore.TransactionIsExist(newtxhash)
+	//_, exist_tx_bytes, _ := blockstore.ReadTransactionBytesByHash( newtxhash )
+	//fmt.Println(exist, exist_tx_bytes)
 	if e0 != nil {
 		return e0
 	}

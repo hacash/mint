@@ -70,6 +70,6 @@ func (bc *BlockChain) Start() {
 }
 
 // interface api
-func (bc *BlockChain) State() interfaces.ChainStateOperation {
+func (bc *BlockChain) State() interfaces.ChainState {
 	return bc.chainstate
 }

@@ -9,11 +9,11 @@ import (
 	"github.com/hacash/mint/difficulty"
 )
 
-func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfaces.Transaction) (interfaces.Block, uint32, error) {
+func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfaces.Transaction) (interfaces.Block, []interfaces.Transaction, uint32, error) {
 
 	lastest, e1 := bc.chainstate.ReadLastestBlockHeadAndMeta()
 	if e1 != nil {
-		return nil, 0, e1
+		return nil, nil, 0, e1
 	}
 	// create
 	nextblock := blocks.NewEmptyBlock_v1(lastest)
@@ -23,7 +23,7 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfaces.Transacti
 		// change diffculty
 		_, _, bits, err := bc.CalculateNextDiffculty(lastest)
 		if err != nil {
-			return nil, 0, err
+			return nil, nil, 0, err
 		}
 		nextblock.Difficulty = fields.VarInt4(bits)
 	}
@@ -32,11 +32,12 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfaces.Transacti
 	// state run
 	blockTempState, e2 := bc.chainstate.NewSubBranchTemporaryChainState()
 	if e2 != nil {
-		return nil, 0, e2
+		return nil, nil, 0, e2
 	}
 	blockTempState.SetPendingBlockHeight(nextblock.GetHeight())
 	defer blockTempState.DestoryTemporary()
 	// append tx
+	removeTxs := make([]interfaces.Transaction, 0)
 	totaltxs := uint32(0)
 	totaltxssize := uint32(0)
 	for _, tx := range txlist {
@@ -47,7 +48,7 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfaces.Transacti
 		}
 		txTempState, e1 := blockTempState.NewSubBranchTemporaryChainState()
 		if e1 != nil {
-			return nil, 0, e1
+			return nil, nil, 0, e1
 		}
 		err := tx.WriteinChainState(txTempState)
 		if err == nil {
@@ -55,8 +56,10 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfaces.Transacti
 			nextblock.AddTransaction(tx)
 			e1 := blockTempState.MergeCoverWriteChainState(txTempState)
 			if e1 != nil {
-				return nil, 0, e1
+				return nil, nil, 0, e1
 			}
+		} else {
+			removeTxs = append(removeTxs, tx) // remove it
 		}
 		// clear
 		txTempState.DestoryTemporary()
@@ -64,5 +67,5 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfaces.Transacti
 	}
 
 	// ok return
-	return nextblock, totaltxssize, nil
+	return nextblock, removeTxs, totaltxssize, nil
 }
