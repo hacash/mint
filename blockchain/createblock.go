@@ -59,6 +59,8 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfaces.Transacti
 				return nil, nil, 0, e1
 			}
 		} else {
+			//fmt.Println("********************  create block error  ***********************")
+			//fmt.Println(err)
 			removeTxs = append(removeTxs, tx) // remove it
 		}
 		// clear
