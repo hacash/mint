@@ -1,10 +1,12 @@
 package blockchain
 
 import (
+	"fmt"
 	"github.com/hacash/chain/blockstore"
 	"github.com/hacash/chain/chainstate"
 	"github.com/hacash/core/interfaces"
 	"github.com/hacash/mint/event"
+	"os"
 	"path"
 	"sync"
 )
@@ -64,6 +66,16 @@ func NewBlockChain(config *BlockChainConfig) (*BlockChain, error) {
 }
 
 func (bc *BlockChain) Start() {
+
+	if bc.config.rollbackToHeight > 0 {
+		tarhei, rollerr := bc.RollbackToBlockHeight(bc.config.rollbackToHeight)
+		if rollerr != nil {
+			fmt.Println(rollerr.Error())
+		} else {
+			fmt.Println("Rollback To Block Height", tarhei, "Successfully !")
+		}
+		os.Exit(0)
+	}
 
 	go bc.loop()
 
