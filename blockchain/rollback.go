@@ -34,19 +34,19 @@ func (bc *BlockChain) RollbackToBlockHeight(targetblockheight uint64) (uint64, e
 			e5 := bc.chainstate.SetLastestBlockHeadAndMeta(rollbackBlock)
 			if e5 != nil {
 				return 0, e5
-			} else {
-				// save status
-				rollerr1 := bc.chainstate.IncompleteSaveLastestBlockHeadAndMeta()
-				if rollerr1 != nil {
-					return 0, rollerr1
-				}
-				rollerr2 := bc.chainstate.IncompleteSaveLastestDiamond()
-				if rollerr2 != nil {
-					return 0, rollerr2
-				}
-				fmt.Print("successfully !\n")
-				return i, nil // ok finish
 			}
+			// save status
+			rollerr1 := bc.chainstate.IncompleteSaveLastestBlockHeadAndMeta()
+			if rollerr1 != nil {
+				return 0, rollerr1
+			}
+			rollerr2 := bc.chainstate.IncompleteSaveLastestDiamond()
+			if rollerr2 != nil {
+				return 0, rollerr2
+			}
+			fmt.Print("successfully !\n")
+			return i, nil // ok finish
+
 		} else {
 			// do rollback
 			e4 := block.RecoverChainState(bc.chainstate)
