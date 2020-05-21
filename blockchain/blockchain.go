@@ -80,16 +80,7 @@ func (bc *BlockChain) ifDoRollback() {
 		if rollerr != nil {
 			fmt.Println(rollerr.Error())
 		} else {
-			rollerr = bc.chainstate.IncompleteSaveLastestBlockHeadAndMeta()
-			if rollerr != nil {
-				fmt.Println(rollerr.Error())
-			}
-			rollerr = bc.chainstate.IncompleteSaveLastestDiamond()
-			if rollerr != nil {
-				fmt.Println(rollerr.Error())
-			} else {
-				fmt.Println("Rollback To Block Height", tarhei, "Successfully !")
-			}
+			fmt.Println("Rollback To Block Height", tarhei, "Successfully !")
 		}
 		os.Exit(0)
 	}
