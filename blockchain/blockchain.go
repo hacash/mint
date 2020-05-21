@@ -67,18 +67,32 @@ func NewBlockChain(config *BlockChainConfig) (*BlockChain, error) {
 
 func (bc *BlockChain) Start() {
 
+	bc.ifDoRollback() // set config to do rollback
+
+	go bc.loop()
+
+}
+
+func (bc *BlockChain) ifDoRollback() {
+
 	if bc.config.rollbackToHeight > 0 {
 		tarhei, rollerr := bc.RollbackToBlockHeight(bc.config.rollbackToHeight)
 		if rollerr != nil {
 			fmt.Println(rollerr.Error())
 		} else {
-			fmt.Println("Rollback To Block Height", tarhei, "Successfully !")
+			rollerr = bc.chainstate.IncompleteSaveLastestBlockHeadAndMeta()
+			if rollerr != nil {
+				fmt.Println(rollerr.Error())
+			}
+			rollerr = bc.chainstate.IncompleteSaveLastestDiamond()
+			if rollerr != nil {
+				fmt.Println(rollerr.Error())
+			} else {
+				fmt.Println("Rollback To Block Height", tarhei, "Successfully !")
+			}
 		}
 		os.Exit(0)
 	}
-
-	go bc.loop()
-
 }
 
 // interface api
