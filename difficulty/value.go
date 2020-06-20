@@ -2,7 +2,6 @@ package difficulty
 
 import (
 	"fmt"
-	"github.com/hacash/blockmint/miner/difficulty"
 	"math/big"
 )
 
@@ -15,16 +14,16 @@ const (
 	vE int64 = 1000 * vP
 )
 
-func ConvertPowPowerToShowFormat( value *big.Int ) string {
+func ConvertPowPowerToShowFormat(value *big.Int) string {
 
-	base := []int64{vE,vP,vT,vG,vM,vK}
-	exts := []string{"E","P","T","G","M","K"}
+	base := []int64{vE, vP, vT, vG, vM, vK}
+	exts := []string{"E", "P", "T", "G", "M", "K"}
 
-	for i:=0; i<len(base); i++ {
+	for i := 0; i < len(base); i++ {
 		bsn := big.NewInt(base[i])
-		if value.Cmp( bsn ) == 1 {
-			numi := new(big.Int).Mul( value, big.NewInt(100) )
-			numi = new(big.Int).Div( numi, bsn )
+		if value.Cmp(bsn) == 1 {
+			numi := new(big.Int).Mul(value, big.NewInt(100))
+			numi = new(big.Int).Div(numi, bsn)
 			numf := float64(numi.Int64())
 			return fmt.Sprintf("%.2f"+exts[i]+"H/s", numf/100)
 		}
@@ -33,7 +32,6 @@ func ConvertPowPowerToShowFormat( value *big.Int ) string {
 
 }
 
-
 ///////////////////////////////////////////
 
 // 计算哈希价值
@@ -41,7 +39,7 @@ func CalculateHashWorth(hash []byte) *big.Int {
 	mulnum := big.NewInt(2)
 	worth := big.NewInt(2)
 	prezorenum := 0
-	wbits := difficulty.BytesToBits(hash)
+	wbits := BytesToBits(hash)
 	for i, v := range wbits {
 		if v != 0 {
 			prezorenum = i

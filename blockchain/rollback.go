@@ -15,7 +15,7 @@ func (bc *BlockChain) RollbackToBlockHeight(targetblockheight uint64) (uint64, e
 	if last_hei <= 1 || last_hei <= targetblockheight {
 		return last_hei, nil // end
 	}
-	fmt.Print("[BlockChain] Rollback to block height:", targetblockheight, "lastest height:", last_hei, "... ")
+	fmt.Print("[BlockChain] Rollback to block height: ", targetblockheight, ", lastest height:", last_hei, "... ")
 	var rollbackBlock interfaces.Block = nil
 	for i := lastest.GetHeight(); i >= 1; i-- {
 		// read block
