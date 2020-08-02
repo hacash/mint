@@ -37,7 +37,7 @@ func (b *BlockChain) ValidateDiamondCreateAction(action interfaces.Action) error
 		return fmt.Errorf("Diamond <%s> already exist.", act.Diamond)
 	}
 	// 检查钻石挖矿计算
-	diamond_resbytes, diamond_str := x16rs.Diamond(uint32(act.Number), act.PrevHash, act.Nonce, act.Address)
+	diamond_resbytes, diamond_str := x16rs.Diamond(uint32(act.Number), act.PrevHash, act.Nonce, act.Address, act.GetRealCustomMessage())
 	diamondstrval, isdia := x16rs.IsDiamondHashResultString(diamond_str)
 	if !isdia {
 		return fmt.Errorf("String <%s> is not diamond.", diamond_str)
