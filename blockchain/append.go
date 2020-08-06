@@ -20,7 +20,10 @@ const (
 )
 
 // interface api
-func (bc *BlockChain) InsertBlock(newblock interfaces.Block) error {
+func (bc *BlockChain) InsertBlock(newblock interfaces.Block, origin string) error {
+	if origin != "" {
+		newblock.SetOriginMark(origin)
+	}
 	return bc.tryValidateAppendNewBlockToChainStateAndStore(newblock)
 }
 
@@ -166,7 +169,10 @@ func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock int
 		// fmt.Println("diamondCreate bc.diamondCreateFeed.Send(diamondCreate), ", diamondCreate, diamondCreate.Diamond, diamondCreate.Number)
 		bc.diamondCreateFeed.Send(diamondCreate)
 	}
-	if newblock.OriginMark() != "" {
+
+	orimark := newblock.OriginMark()
+	if orimark != "" && orimark != "sync" {
+		// 发送新区快通知
 		bc.validatedBlockInsertFeed.Send(interfaces.Block(newblock))
 	}
 

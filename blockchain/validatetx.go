@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func (bc *BlockChain) ValidateTransaction(newtx interfaces.Transaction) error {
+func (bc *BlockChain) ValidateTransaction(newtx interfaces.Transaction, callchainstate func(interfaces.ChainState)) error {
 	newtxhash := newtx.Hash()
 	txhxhex := newtxhash.ToHex()
 	blockstore := bc.chainstate.BlockStore()
@@ -42,6 +42,9 @@ func (bc *BlockChain) ValidateTransaction(newtx interfaces.Transaction) error {
 	newTxState, e2 := bc.chainstate.NewSubBranchTemporaryChainState()
 	if e2 != nil {
 		return e2
+	}
+	if callchainstate != nil {
+		callchainstate(newTxState) // 外部处理chainstate
 	}
 	defer newTxState.DestoryTemporary() // clean data
 	// validate

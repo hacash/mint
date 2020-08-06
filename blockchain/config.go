@@ -5,13 +5,14 @@ import (
 )
 
 type BlockChainConfig struct {
-	datadir          string
-	rollbackToHeight uint64
+	cnffile          *sys.Inicnf
+	Datadir          string
+	RollbackToHeight uint64
 }
 
 func NewEmptyBlockChainConfig() *BlockChainConfig {
 	cnf := &BlockChainConfig{
-		rollbackToHeight: 0,
+		RollbackToHeight: 0,
 	}
 	return cnf
 }
@@ -20,11 +21,12 @@ func NewEmptyBlockChainConfig() *BlockChainConfig {
 
 func NewBlockChainConfig(cnffile *sys.Inicnf) *BlockChainConfig {
 	cnf := NewEmptyBlockChainConfig()
+	cnf.cnffile = cnffile
 
 	section := cnffile.Section("")
-	cnf.rollbackToHeight = section.Key("rollbackToHeight").MustUint64(0)
+	cnf.RollbackToHeight = section.Key("RollbackToHeight").MustUint64(0)
 
-	cnf.datadir = cnffile.MustDataDir()
+	cnf.Datadir = cnffile.MustDataDir()
 
 	return cnf
 

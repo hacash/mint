@@ -7,7 +7,6 @@ import (
 	"github.com/hacash/core/interfaces"
 	"github.com/hacash/mint/event"
 	"os"
-	"path"
 	"sync"
 )
 
@@ -37,14 +36,12 @@ type BlockChain struct {
 
 func NewBlockChain(config *BlockChainConfig) (*BlockChain, error) {
 
-	cscnf := chainstate.NewEmptyChainStateConfig()
-	cscnf.Datadir = path.Join(config.datadir, "chainstate")
+	cscnf := chainstate.NewChainStateConfig(config.cnffile)
 	csobject, e1 := chainstate.NewChainState(cscnf)
 	if e1 != nil {
 		return nil, e1
 	}
-	stocnf := blockstore.NewEmptyBlockStoreConfig()
-	stocnf.Datadir = path.Join(config.datadir, "blockstore")
+	stocnf := blockstore.NewBlockStoreConfig(config.cnffile)
 	stobject, e2 := blockstore.NewBlockStore(stocnf)
 	if e2 != nil {
 		return nil, e2
@@ -75,8 +72,8 @@ func (bc *BlockChain) Start() {
 
 func (bc *BlockChain) ifDoRollback() {
 
-	if bc.config.rollbackToHeight > 0 {
-		tarhei, rollerr := bc.RollbackToBlockHeight(bc.config.rollbackToHeight)
+	if bc.config.RollbackToHeight > 0 {
+		tarhei, rollerr := bc.RollbackToBlockHeight(bc.config.RollbackToHeight)
 		if rollerr != nil {
 			fmt.Println(rollerr.Error())
 		} else {

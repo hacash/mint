@@ -68,6 +68,8 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfaces.Transacti
 		// next
 	}
 
+	//fmt.Println("CreateNextBlockByValidateTxs:", totaltxs)
+
 	// ok return
 	return nextblock, removeTxs, totaltxssize, nil
 }
