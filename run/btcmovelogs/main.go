@@ -139,12 +139,12 @@ func parseGenesis(line, textfile string, curtrsno, fl int64) *stores.SatoshiGene
 	}
 	// 返回
 	return &stores.SatoshiGenesis{
-		fields.VarInt4(nums[0]),
-		fields.VarInt4(nums[1]),
-		fields.VarInt4(nums[2]),
-		fields.VarInt4(nums[3]),
-		fields.VarInt4(nums[4]),
-		fields.VarInt4(nums[5]),
+		fields.VarUint4(nums[0]),
+		fields.VarUint4(nums[1]),
+		fields.VarUint4(nums[2]),
+		fields.VarUint4(nums[3]),
+		fields.VarUint4(nums[4]),
+		fields.VarUint4(nums[5]),
 		*addr,
 		trshx,
 	}

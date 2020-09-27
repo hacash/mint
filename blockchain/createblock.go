@@ -18,14 +18,14 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfaces.Transacti
 	// create
 	nextblock := blocks.NewEmptyBlock_v1(lastest)
 	if nextblock.GetHeight() < mint.AdjustTargetDifficultyNumberOfBlocks {
-		nextblock.Difficulty = fields.VarInt4(difficulty.LowestDifficultyCompact)
+		nextblock.Difficulty = fields.VarUint4(difficulty.LowestDifficultyCompact)
 	} else if nextblock.GetHeight()%mint.AdjustTargetDifficultyNumberOfBlocks == 0 {
 		// change diffculty
 		_, _, bits, err := bc.CalculateNextDiffculty(lastest)
 		if err != nil {
 			return nil, nil, 0, err
 		}
-		nextblock.Difficulty = fields.VarInt4(bits)
+		nextblock.Difficulty = fields.VarUint4(bits)
 	}
 	// coinbase tx
 	nextblock.AddTransaction(coinbase.CreateCoinbaseTx(nextblock.GetHeight()))
