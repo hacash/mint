@@ -36,14 +36,20 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfaces.Transacti
 	}
 	blockTempState.SetPendingBlockHeight(nextblock.GetHeight())
 	defer blockTempState.DestoryTemporary()
+	chainstore := bc.chainstate.BlockStore()
 	// append tx
 	removeTxs := make([]interfaces.Transaction, 0)
 	totaltxs := uint32(0)
 	totaltxssize := uint32(0)
+
 	for _, tx := range txlist {
-		totaltxs += 1
-		totaltxssize += tx.Size()
-		if totaltxs > 2000 || totaltxssize > mint.SingleBlockMaxSize {
+		// 检查tx是否存在
+		txinchain, e0 := chainstore.TransactionIsExist(tx.Hash())
+		if e0 != nil || txinchain {
+			removeTxs = append(removeTxs, tx) // remove it , its already in chain
+			continue
+		}
+		if totaltxs >= 2000 || totaltxssize >= mint.SingleBlockMaxSize {
 			break // overflow block max size or max num
 		}
 		txTempState, e1 := blockTempState.NewSubBranchTemporaryChainState()
@@ -51,17 +57,22 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfaces.Transacti
 			return nil, nil, 0, e1
 		}
 		err := tx.WriteinChainState(txTempState)
-		if err == nil {
-			// add
-			nextblock.AddTransaction(tx)
-			e1 := blockTempState.MergeCoverWriteChainState(txTempState)
-			if e1 != nil {
-				return nil, nil, 0, e1
-			}
-		} else {
+		if err != nil {
 			//fmt.Println("********************  create block error  ***********************")
 			//fmt.Println(err)
 			removeTxs = append(removeTxs, tx) // remove it
+			continue
+		}
+		// add
+		nextblock.AddTransaction(tx)
+		// 统计
+		totaltxs += 1
+		totaltxssize += tx.Size()
+		// 合并状态
+		e2 := blockTempState.MergeCoverWriteChainState(txTempState)
+		if e2 != nil {
+			txTempState.DestoryTemporary()
+			return nil, nil, 0, e2
 		}
 		// clear
 		txTempState.DestoryTemporary()

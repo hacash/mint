@@ -16,10 +16,11 @@ func (bc *BlockChain) RollbackToBlockHeight(targetblockheight uint64) (uint64, e
 		return last_hei, nil // end
 	}
 	fmt.Print("[BlockChain] Rollback to block height: ", targetblockheight, ", lastest height:", last_hei, "... ")
+	blockstore := bc.chainstate.BlockStore()
 	var rollbackBlock interfaces.Block = nil
 	for i := lastest.GetHeight(); i >= 1; i-- {
 		// read block
-		_, blkdatas, e2 := bc.chainstate.BlockStore().ReadBlockBytesByHeight(i, 0)
+		_, blkdatas, e2 := blockstore.ReadBlockBytesByHeight(i, 0)
 		if e2 != nil {
 			return 0, e2
 		}
@@ -52,6 +53,11 @@ func (bc *BlockChain) RollbackToBlockHeight(targetblockheight uint64) (uint64, e
 			e4 := block.RecoverChainState(bc.chainstate)
 			if e4 != nil {
 				return 0, e4
+			}
+			// delete all trs data ptr
+			e5 := blockstore.CancelUniteTransactions(block)
+			if e5 != nil {
+				return 0, e5
 			}
 			// do next
 		}
