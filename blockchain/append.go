@@ -40,7 +40,7 @@ func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock int
 	newBlockTimestamp := newblock.GetTimestamp()
 	newBlockHash := newblock.HashFresh()
 	newBlockHashHexStr := newBlockHash.ToHex()
-	errmsgprifix := fmt.Sprintf("Error: Try insert append new block height:%d, hx:%s to chain, ", newBlockHeight, newBlockHashHexStr)
+	errmsgprifix := fmt.Sprintf("Warning: try insert append new block height:%d, hx:%s to chain, ", newBlockHeight, newBlockHashHexStr)
 	// check max size in p2p node message on get one
 	// check height
 	if newBlockHeight != prevblock.GetHeight()+1 {
