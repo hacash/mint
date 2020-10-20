@@ -53,7 +53,7 @@ func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock int
 		return fmt.Errorf(errmsgprifix+"Need block prev hash %s but got %s.", prevhash.ToHex(), newblkprevhash.ToHex())
 	}
 	// check time now
-	if int64(newBlockTimestamp) >= int64(time.Now().Unix()) {
+	if int64(newBlockTimestamp) > int64(time.Now().Unix()) {
 		createtime := time.Unix(int64(newBlockTimestamp), 0).Format(Time_format_layout)
 		nowtime := time.Now().Format(Time_format_layout)
 		return fmt.Errorf(errmsgprifix+"Block create timestamp cannot equal or more than now %s but got %s.", nowtime, createtime)
@@ -77,6 +77,14 @@ func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock int
 	if bytes.Compare(newblockRealMkrlRoot, newblkmkrlroot) != 0 {
 		err := fmt.Errorf(errmsgprifix+"Need block mkrl root %s but got %s.", newblockRealMkrlRoot.ToHex(), newblkmkrlroot.ToHex())
 		//fmt.Println(err); os.Exit(0)
+		fmt.Println(err)
+		for i, v := range newblktxs {
+			fmt.Println("tx", i, v.Hash())
+		}
+		fmt.Println("- - - - - - - - - - - - - mkrl error block body hex - - - - - - - - - - - - -")
+		testprintblkdts, _ := newblock.Serialize()
+		fmt.Println(hex.EncodeToString(testprintblkdts))
+		fmt.Println("- - - - - - - - - - - - - mkrl error block body hex end - - - - - - - - - - -")
 		return err
 	}
 	//fmt.Println("mkrl:", newblockRealMkrlRoot.ToHex(), newblkmkrlroot.ToHex())
