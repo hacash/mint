@@ -9,7 +9,7 @@ import (
 //
 func ParseMinerPoolCoinbaseMessage(msgwords string, minernum uint32) [16]byte {
 	var msg [16]byte
-	copy(msg[0:11], []byte(msgwords)[0:11]) // minerpoolcn
+	copy(msg[:], msgwords) // minerpoolcom
 	binary.BigEndian.PutUint32(msg[12:16], minernum)
 	return msg
 }
