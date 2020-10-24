@@ -155,7 +155,14 @@ func DifficultyHashToBig(hashbyte []byte) *big.Int {
 }
 
 func DifficultyUint32ToHash(diff_num uint32) []byte {
+	return DifficultyUint32ToHashEx(diff_num, 0)
+}
 
+func DifficultyUint32ToHashForAntimatter(diff_num uint32) []byte {
+	return DifficultyUint32ToHashEx(diff_num, 1)
+}
+
+func DifficultyUint32ToHashEx(diff_num uint32, filltail uint8) []byte {
 	diff_byte := make([]byte, 4)
 	binary.BigEndian.PutUint32(diff_byte, diff_num)
 

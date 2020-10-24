@@ -1,20 +1,55 @@
 package difficulty
 
 import (
+	"bytes"
+	"encoding/binary"
 	"fmt"
 	"math/big"
 )
 
 const (
-	vK int64 = 1000
-	vM int64 = 1000 * vK
-	vG int64 = 1000 * vM
-	vT int64 = 1000 * vG
-	vP int64 = 1000 * vT
-	vE int64 = 1000 * vP
+	vK int64 = 1024
+	vM int64 = vK * vK
+	vG int64 = vK * vM
+	vT int64 = vK * vG
+	vP int64 = vK * vT
+	vE int64 = vK * vP
 )
 
+func pow(value *big.Int, x int) *big.Int {
+	if x == 1 {
+		return value
+	}
+	num := new(big.Int).Set(value)
+	for i := 1; i < int(x); i++ {
+		num = num.Mul(num, value)
+	}
+	return num
+}
+
 func ConvertPowPowerToShowFormat(value *big.Int) string {
+	stepn := new(big.Int).SetUint64(1000)
+	if value.Cmp(stepn) <= 0 {
+		return value.String() + "H/s"
+	}
+	exts := "KMGTPEZYBNDCX"
+	spxi := 0
+	spxn := new(big.Int).SetUint64(1)
+	for i := 2; i < len(exts); i++ {
+		if value.Cmp(pow(stepn, i)) <= 0 {
+			spxi = i - 2
+			spxn = pow(stepn, i-1)
+			break
+		}
+	}
+	num1000 := new(big.Int).SetUint64(1000)
+	numi := new(big.Int).Mul(num1000, value)
+	numi = new(big.Int).Div(numi, spxn)
+	numf := float64(numi.Int64()) / 1000
+	return fmt.Sprintf("%.3f"+string(exts[spxi])+"H/s", numf)
+}
+
+func ConvertPowPowerToShowFormat_old(value *big.Int) string {
 
 	base := []int64{vE, vP, vT, vG, vM, vK}
 	exts := []string{"E", "P", "T", "G", "M", "K"}
@@ -36,6 +71,17 @@ func ConvertPowPowerToShowFormat(value *big.Int) string {
 
 // 计算哈希价值
 func CalculateHashWorth(hash []byte) *big.Int {
+	return DifficultyHashToBig(antimatterHash(hash))
+}
+
+// 计算难度价值
+func CalculateDifficultyWorth(diffnum uint32) *big.Int {
+	diffhx := DifficultyUint32ToHashForAntimatter(diffnum)
+	return DifficultyHashToBig(antimatterHash(diffhx))
+}
+
+// 计算哈希价值
+func CalculateHashWorth_old(hash []byte) *big.Int {
 	mulnum := big.NewInt(2)
 	worth := big.NewInt(2)
 	prezorenum := 0
@@ -51,4 +97,42 @@ func CalculateHashWorth(hash []byte) *big.Int {
 		worth = worth.Mul(worth, mulnum)
 	}
 	return worth
+}
+
+// 反物质哈希
+func antimatterHash(hx []byte) []byte {
+
+	prefixzorenum := 0
+	basevalbts := []byte{0, 0, 0, 0}
+	cpidx := 0
+	for i, v := range hx {
+		if v == 0 {
+			prefixzorenum++
+			continue
+		}
+		cpidx = i
+		break
+	}
+	copy(basevalbts[1:], hx[cpidx:])
+	newbasenum := 16777215 - binary.BigEndian.Uint32(basevalbts)
+	// 新值
+	newbasenumbts := []byte{0, 0, 0, 0}
+	binary.BigEndian.PutUint32(newbasenumbts, newbasenum)
+	// hash
+	buf := bytes.NewBuffer(newbasenumbts[1:])
+	buf.Write(bytes.Repeat([]byte{255}, prefixzorenum))
+	return buf.Bytes()
+}
+
+func antimatterHash_old(hx []byte) []byte {
+
+	tar := make([]byte, len(hx))
+	a := 0
+	for i := len(hx) - 1; i >= 0; i-- {
+		tar[a] = 255 - hx[i]
+		a += 1
+	}
+
+	return tar
+
 }
