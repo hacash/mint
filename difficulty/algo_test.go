@@ -40,7 +40,7 @@ func Test_t1(t *testing.T) {
 
 		copy(basehx, []byte{uint8(i)})
 		//fmt.Println( basehx, BytesToBits(basehx) )
-		fmt.Println(basehx[0:4], BytesToBits(basehx)[0:16], CalculateHashWorth(basehx), CalculateHashWorthV2(basehx))
+		fmt.Println(basehx[0:4], BytesToBits(basehx)[0:16], CalculateHashWorth(1, basehx), CalculateHashWorthV2(basehx))
 
 	}
 }

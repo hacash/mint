@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"github.com/hacash/x16rs"
 	"math/big"
 )
 
@@ -70,14 +71,20 @@ func ConvertPowPowerToShowFormat_old(value *big.Int) string {
 ///////////////////////////////////////////
 
 // 计算哈希价值
-func CalculateHashWorth(hash []byte) *big.Int {
-	return DifficultyHashToBig(antimatterHash(hash))
+func CalculateHashWorth(curheight uint64, hash []byte) *big.Int {
+	worth := DifficultyHashToBig(antimatterHash(hash))
+	repeat := x16rs.HashRepeatForBlockHeight(curheight)
+	targetHashWorth := new(big.Int).Mul(worth, new(big.Int).SetUint64(uint64(repeat)))
+	return targetHashWorth
 }
 
 // 计算难度价值
-func CalculateDifficultyWorth(diffnum uint32) *big.Int {
+func CalculateDifficultyWorth(curheight uint64, diffnum uint32) *big.Int {
 	diffhx := DifficultyUint32ToHashForAntimatter(diffnum)
-	return DifficultyHashToBig(antimatterHash(diffhx))
+	worth := DifficultyHashToBig(antimatterHash(diffhx))
+	repeat := x16rs.HashRepeatForBlockHeight(curheight)
+	targetHashWorth := new(big.Int).Mul(worth, new(big.Int).SetUint64(uint64(repeat)))
+	return targetHashWorth
 }
 
 // 计算哈希价值
