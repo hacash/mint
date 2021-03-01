@@ -8,7 +8,7 @@ import (
 
 func CreateCoinbaseTx(blockheight uint64) *transactions.Transaction_0_Coinbase {
 
-	coinbasetx := transactions.NewTransaction_0_Coinbase()
+	coinbasetx := transactions.NewTransaction_0_CoinbaseV0()
 	coinbasetx.Reward = *BlockCoinBaseReward(blockheight)
 	rwdaddr, _ := fields.CheckReadableAddress("1AVRuFXNFi3rdMrPH4hdqSgFrEBnWisWaS")
 	coinbasetx.Address = *rwdaddr
