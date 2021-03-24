@@ -121,7 +121,7 @@ func antimatterHash(hx []byte) []byte {
 		break
 	}
 	copy(basevalbts[1:], hx[cpidx:])
-	newbasenum := 16777215 - binary.BigEndian.Uint32(basevalbts)
+	newbasenum := 16777215 - binary.BigEndian.Uint32(basevalbts) // 反记
 	// 新值
 	newbasenumbts := []byte{0, 0, 0, 0}
 	binary.BigEndian.PutUint32(newbasenumbts, newbasenum)

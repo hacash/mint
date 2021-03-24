@@ -19,9 +19,10 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfaces.Transacti
 	nextblock := blocks.NewEmptyBlock_v1(lastest)
 	if nextblock.GetHeight() < mint.AdjustTargetDifficultyNumberOfBlocks {
 		nextblock.Difficulty = fields.VarUint4(difficulty.LowestDifficultyCompact)
-	} else if nextblock.GetHeight()%mint.AdjustTargetDifficultyNumberOfBlocks == 0 {
+	} else {
 		// change diffculty
 		_, _, bits, err := bc.CalculateNextDiffculty(lastest)
+		//fmt.Println("CalculateNextDiffculty - - - - - ", lastest.GetHeight()+1, " - - - ", hex.EncodeToString(tarhx), hex.EncodeToString(difficulty.Uint32ToHash(lastest.GetHeight(), bits)))
 		if err != nil {
 			return nil, nil, 0, err
 		}

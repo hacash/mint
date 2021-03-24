@@ -11,7 +11,7 @@ import (
 	"github.com/hacash/core/transactions"
 	"github.com/hacash/mint"
 	"github.com/hacash/mint/coinbase"
-	"math/big"
+	"github.com/hacash/mint/difficulty"
 	"time"
 )
 
@@ -104,14 +104,12 @@ func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock int
 		return fmt.Errorf(errmsgprifix+"Block coinbase reward need %s got %s.", shouldrewards, newblockCoinbaseReward.ToFinString())
 	}
 	// check hash difficulty
-	newblockDiffBigValue := new(big.Int).SetBytes(newBlockHash)
-	targetDiffHash, targetDiffBigValue, _, e5 := bc.CalculateNextDiffculty(prevblock)
+	targetDiffHash, _, _, e5 := bc.CalculateNextDiffculty(prevblock)
 	if e5 != nil {
 		return e5
 	}
-	if newblockDiffBigValue.Cmp(targetDiffBigValue) == 1 {
+	if difficulty.CheckHashDifficultySatisfy(newBlockHash, targetDiffHash) == false {
 		return fmt.Errorf(errmsgprifix+"Maximum accepted hash diffculty is %s but got %s.", hex.EncodeToString(targetDiffHash), newBlockHashHexStr)
-
 	}
 	// 检查验证全部交易签名
 	sigok, e6 := newblock.VerifyNeedSigns()

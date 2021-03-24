@@ -9,7 +9,7 @@ import (
 )
 
 // 计算下一阶段区块难度
-func CalculateNextTargetDifficulty(
+func CalculateNextTargetDifficulty_v1(
 	currentBits uint32,
 	currentHeight uint64,
 	prevTimestamp uint64,
@@ -19,7 +19,7 @@ func CalculateNextTargetDifficulty(
 	printInfo *string,
 ) (*big.Int, uint32) {
 
-	powTargetTimespan := time.Second * time.Duration(eachblocktime*changeblocknum) // 一分钟一个快
+	powTargetTimespan := time.Second * time.Duration(eachblocktime*changeblocknum) // 五分钟一个快
 	// 如果新区块height不是 288 的整数倍，则不需要更新，仍然是最后一个区块的 bits
 	if currentHeight%changeblocknum != 0 {
 		return Uint32ToBig_v1(currentBits), currentBits
@@ -91,13 +91,12 @@ func Uint32ToHash_v1(number uint32) []byte {
 
 func BigToHash256_v1(bignum *big.Int) []byte {
 	bigbytes := bignum.Bytes()
-	bytes32 := bytes.Repeat([]byte{0}, 32)
-	start := 32 - len(bigbytes)
-	if start < 0 {
-		start = 0
+	if len(bigbytes) > 32 {
+		bigbytes = bytes.Repeat([]byte{255}, 32) // 超出时取最大值
 	}
-	copy(bytes32[start:], bigbytes)
-	return bytes32
+	buf := bytes.NewBuffer(bytes.Repeat([]byte{0}, 32-len(bigbytes)))
+	buf.Write(bigbytes)
+	return buf.Bytes()
 }
 
 func BigToUint32_v1(bignum *big.Int) uint32 {

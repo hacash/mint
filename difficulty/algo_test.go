@@ -98,9 +98,36 @@ func Test_t3(t *testing.T) {
 	}
 
 	for _, hx := range hxs {
-		fmt.Println(DifficultyHashToBig(antimatterHash(hx)).String())
+		fmt.Println(hex.EncodeToString(hx), DifficultyHashToBig(antimatterHash(hx)).String())
 	}
 
+}
+
+func Test_t4(t *testing.T) {
+
+	hxs := [][]byte{
+		HexDecodeString("0000000005d28eb241b004a2da93e2248d9b820d2e794408651aa8d55c819a8d"),
+		HexDecodeString("000000001748ae6594aeb201652232f9a7df3c148106f548506f259579966235"),
+		HexDecodeString("000000000afd7f82d86251c57b00ddfc106f84f63c716662ef28a13dc51ce983"),
+		HexDecodeString("0000000002b5c4fe535c9f2a7ef1edca24dca3cb26fa04874d48a90b1b42efda"),
+		HexDecodeString("00000000174aa267220b821af1d2faaee899eab2f70a40ea69c4819c8e6efb57"),
+		HexDecodeString("0000000015e7e5627aa9b7064e9a4b4991dcc5c0d4a21dc7db8bcb1b5b97d1bd"),
+		HexDecodeString("000000000c0e3a40c518a625878ed55b15f1bd6ed60d903eeaa26ae9ee032255"),
+		HexDecodeString("000000001839e4abc416eba7843c48dfc372b157c9376463561bb972e94945d0"),
+	}
+
+	for _, hx := range hxs {
+		fmt.Println(hex.EncodeToString(hx), CalculateHashWorth(220945, hx))
+	}
+
+}
+
+func HexDecodeString(hexstr string) []byte {
+	bts, e := hex.DecodeString(hexstr)
+	if e != nil {
+		panic(e)
+	}
+	return bts
 }
 
 func FAN(hx []byte) []byte {

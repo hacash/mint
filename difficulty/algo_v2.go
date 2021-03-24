@@ -38,8 +38,12 @@ func CalculateNextTarget(
 		return DifficultyCalculateNextTarget_v2(lastestBits, currentHeight, prev288BlockTimestamp, lastestTimestamp, eachblocktime, changeblocknum, printInfo)
 	}
 	// 最旧版
-	b1, u1 := CalculateNextTargetDifficulty(lastestBits, currentHeight, prev288BlockTimestamp, lastestTimestamp, eachblocktime, changeblocknum, printInfo)
-	return BigToHash256_v1(b1), b1, u1
+	b1, u1 := CalculateNextTargetDifficulty_v1(lastestBits, currentHeight, prev288BlockTimestamp, lastestTimestamp, eachblocktime, changeblocknum, printInfo)
+	//return BigToHash256_v1(b1), b1, u1
+	//if bytes.Compare(BigToHash256_v1(b1), Uint32ToHash256_v1(u1)) != 0 {
+	//	fmt.Println("CalculateNextTargetDifficulty_v1: ", currentHeight, hex.EncodeToString(BigToHash256_v1(b1)), hex.EncodeToString(Uint32ToHash256_v1(u1)))
+	//}
+	return Uint32ToHash256_v1(u1), b1, u1
 }
 
 func Uint32ToBig(currentHeight uint64, diff_num uint32) *big.Int {
@@ -174,7 +178,7 @@ func DifficultyUint32ToHashEx(diff_num uint32, filltail uint8) []byte {
 	originally_yushu := 256 - len(originally_bits_1) - len(originally_bits_2)
 	originally_bits_3 := []byte{}
 	if originally_yushu > 0 {
-		originally_bits_3 = bytes.Repeat([]byte{0}, originally_yushu)
+		originally_bits_3 = bytes.Repeat([]byte{filltail}, originally_yushu)
 	}
 	originally_bits_bufs := bytes.NewBuffer(originally_bits_1)
 	originally_bits_bufs.Write(originally_bits_2)
@@ -189,8 +193,7 @@ func DifficultyUint32ToHashEx(diff_num uint32, filltail uint8) []byte {
 func DifficultyBigToHash(diff_big *big.Int) []byte {
 	bigbytes := diff_big.Bytes()
 	if len(bigbytes) > 32 {
-		fmt.Println(len(bigbytes), bigbytes)
-		panic("bigbytes length not more than 32.")
+		bigbytes = bytes.Repeat([]byte{255}, 32) // 超出时取最大值
 	}
 	buf := bytes.NewBuffer(bytes.Repeat([]byte{0}, 32-len(bigbytes)))
 	buf.Write(bigbytes)
