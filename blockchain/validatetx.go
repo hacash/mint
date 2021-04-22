@@ -29,7 +29,7 @@ func (bc *BlockChain) ValidateTransaction(newtx interfaces.Transaction, callchai
 		return fmt.Errorf("tx %s handling fee is too low for miners to accept.", txhxhex)
 	}
 	// sign
-	ok, e1 := newtx.VerifyNeedSigns(nil)
+	ok, e1 := newtx.VerifyAllNeedSigns()
 	if !ok || e1 != nil {
 		return fmt.Errorf("tx %s verify signature error", txhxhex)
 	}
