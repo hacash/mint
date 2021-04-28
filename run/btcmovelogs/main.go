@@ -18,9 +18,20 @@ import (
  * BTC 单向转移至 Hacash 主网，验证日志接口
  */
 
-const cacheDataGroupLen = 10000
+/**
 
-var cacheDatas = make([][]*stores.SatoshiGenesis, 0)
+// test
+
+export GOPATH=/media/yangjie/500GB/hacash/go
+cd mint/run/btcmovelogs
+go run main.go
+
+
+go build -ldflags '-w -s' -o   hacash_btc_move_log_2021_04_25_01  mint/run/btcmovelogs/main.go
+
+*/
+
+var cacheDatas = make([]*stores.SatoshiGenesis, 0)
 
 func main() {
 
@@ -29,13 +40,17 @@ func main() {
 
 	seekAlllogFiles()
 
+	listenport := "3366"
+	if len(os.Args) > 1 {
+		listenport = os.Args[1]
+	}
+
 	// http server listen
 	go func() {
 		servmux := http.NewServeMux()
 		servmux.HandleFunc("/btcmovelogs", dealQuery)
-		listenport := "0.0.0.0:3366"
-		fmt.Println("ListenAndServe:", listenport)
-		http.ListenAndServe(listenport, servmux)
+		fmt.Println("ListenAndServe:", "0.0.0.0:"+listenport)
+		http.ListenAndServe("0.0.0.0:"+listenport, servmux)
 	}()
 
 	s := <-c
@@ -78,12 +93,7 @@ func seekAlllogFiles() {
 				return
 			}
 			// 添加进缓存
-			groupIdx := (curtrsno - 1) / cacheDataGroupLen
-			//seekIdx  := (curtrsno-1) - (groupIdx * cacheDataGroupLen)
-			if len(cacheDatas) <= int(groupIdx) {
-				cacheDatas = append(cacheDatas, make([]*stores.SatoshiGenesis, 0, 100))
-			}
-			cacheDatas[groupIdx] = append(cacheDatas[groupIdx], genis)
+			cacheDatas = append(cacheDatas, genis)
 			// 下一行
 			prevGenesis = genis
 			curtrsno++
@@ -218,41 +228,42 @@ func checkGenesis(prevGenesis, genis *stores.SatoshiGenesis, textfile string, cu
 func dealQuery(w http.ResponseWriter, request *http.Request) {
 	request.ParseForm()
 	trsnostr := request.Form.Get("trsno")
+	limitstr := request.Form.Get("limit")
 	var trsno int64 = 0
 	if n, ok := strconv.ParseInt(trsnostr, 10, 0); ok == nil {
 		trsno = n
 	}
+	var limit int64 = 1
+	if n, ok := strconv.ParseInt(limitstr, 10, 0); ok == nil {
+		limit = n
+	}
 	if trsno == 0 {
-		w.Write([]byte("not find"))
+		//w.Write([]byte("not find"))
 		return
 	}
-
-	groupIdx := (trsno - 1) / cacheDataGroupLen
-	seekIdx := (trsno - 1) - (groupIdx * cacheDataGroupLen)
-	if len(cacheDatas) <= int(groupIdx) {
-		w.Write([]byte("not find"))
-		return
-	}
-	if len(cacheDatas[groupIdx]) <= int(seekIdx) {
-		w.Write([]byte("not find"))
-		return
-	}
+	// 获取
+	seekIdx := (trsno - 1)
 	// 读取
-	genesis := cacheDatas[groupIdx][seekIdx]
 	// 打印
-	resstr := fmt.Sprintf("%d,%d,%d,%d,%d,%d,%s,%s",
-		genesis.TransferNo,
-		genesis.BitcoinBlockHeight,
-		genesis.BitcoinBlockTimestamp,
-		genesis.BitcoinEffectiveGenesis,
-		genesis.BitcoinQuantity,
-		genesis.AdditionalTotalHacAmount,
-		genesis.OriginAddress.ToReadable(),
-		hex.EncodeToString(genesis.BitcoinTransferHash),
-	)
+	allretstr := []string{}
+	for i := seekIdx; i < int64(len(cacheDatas)) && i < seekIdx+limit; i++ {
+		genesis := cacheDatas[i]
+		resstr := fmt.Sprintf("%d,%d,%d,%d,%d,%d,%s,%s",
+			genesis.TransferNo,
+			genesis.BitcoinBlockHeight,
+			genesis.BitcoinBlockTimestamp,
+			genesis.BitcoinEffectiveGenesis,
+			genesis.BitcoinQuantity,
+			genesis.AdditionalTotalHacAmount,
+			genesis.OriginAddress.ToReadable(),
+			hex.EncodeToString(genesis.BitcoinTransferHash),
+		)
+		//
+		allretstr = append(allretstr, resstr)
+	}
 
 	// 输出结果
-	w.Write([]byte(resstr))
+	w.Write([]byte(strings.Join(allretstr, "|")))
 	return
 
 }

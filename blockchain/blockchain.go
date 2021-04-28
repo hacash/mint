@@ -68,6 +68,10 @@ func (bc *BlockChain) Start() {
 
 	go bc.loop()
 
+	if !bc.config.DisableDownloadBTCMoveLog {
+		go bc.downLoadBTCMoveLog()
+	}
+
 }
 
 func (bc *BlockChain) ifDoRollback() {
