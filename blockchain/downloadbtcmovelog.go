@@ -41,7 +41,7 @@ func (bc *BlockChain) downLoadBTCMoveLog() {
 			fmt.Println(e)
 			return
 		}
-		lastpageData = list
+		lastpageData = stores.SatoshiGenesisPageSerializeForShow(list)
 	}
 	// 等待读取新增
 	lastpage := reqpage
@@ -63,7 +63,7 @@ func (bc *BlockChain) downLoadBTCMoveLog() {
 		}
 		lastpageData = append(lastpageData, pagedata...)
 		// 保存
-		e1 := store.SaveBTCMoveLogPageData(lastpage, lastpageData)
+		e1 := store.SaveBTCMoveLogPageData(lastpage, stores.SatoshiGenesisPageParseForShow(lastpageData))
 		if e1 != nil {
 			fmt.Println("[Satoshi genesis] SaveBTCMoveLogPageData Error:", e1.Error())
 			return

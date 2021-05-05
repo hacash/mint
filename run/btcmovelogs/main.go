@@ -67,6 +67,7 @@ func seekAlllogFiles() {
 
 	var curtrsno int64 = 1
 	var prevGenesis *stores.SatoshiGenesis = nil
+	var filenum int = 0
 
 	for i := 1; ; i++ {
 		textfile := fmt.Sprintf("./btcmovelogs%d.txt", i)
@@ -99,11 +100,12 @@ func seekAlllogFiles() {
 			curtrsno++
 			fl++
 		}
+		filenum++
 		// 下一个文件
 		file.Close()
 	}
 	//fmt.Println(cacheDatas)
-	fmt.Println("all log files load ok.")
+	fmt.Printf("all %d files total %d lines load logs ok.\n", filenum, len(cacheDatas))
 }
 
 func parseGenesis(line, textfile string, curtrsno, fl int64) *stores.SatoshiGenesis {
@@ -151,7 +153,7 @@ func parseGenesis(line, textfile string, curtrsno, fl int64) *stores.SatoshiGene
 	return &stores.SatoshiGenesis{
 		fields.VarUint4(nums[0]),
 		fields.VarUint4(nums[1]),
-		fields.VarUint4(nums[2]),
+		fields.VarUint5(nums[2]),
 		fields.VarUint4(nums[3]),
 		fields.VarUint4(nums[4]),
 		fields.VarUint4(nums[5]),
@@ -205,7 +207,7 @@ func checkGenesis(prevGenesis, genis *stores.SatoshiGenesis, textfile string, cu
 
 	// 验证比特币数量
 	mvbtc := int64(genis.BitcoinQuantity)
-	if mvbtc < 1 || mvbtc > 1000 {
+	if mvbtc < 1 || mvbtc > 10000 {
 		exrr := fmt.Sprintf("BitcoinQuantity need between %s but got %d", "1 ~ 1000", genis.BitcoinQuantity)
 		exitError(exrr, textfile, curtrsno, fl)
 		return false

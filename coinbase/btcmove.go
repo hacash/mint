@@ -2,6 +2,7 @@ package coinbase
 
 import (
 	"fmt"
+	"github.com/hacash/core/stores"
 	"math"
 	"strconv"
 	"strings"
@@ -95,6 +96,32 @@ func padding(num, w int, prx string) string {
 	return string([]byte(str)[len(str)-w:])
 }
 
-/*
+// 解析 log 显示
 
- */
+// 解析日志
+func ParseSatoshiGenesisByItemString(logitemstr string, trsno int64) *stores.SatoshiGenesis {
+	// 开始解析
+	items := stores.SatoshiGenesisPageParseForShow([]string{logitemstr})
+	if len(items) != 0 {
+		return nil
+	}
+	item := items[0]
+	if int64(item.TransferNo) != trsno {
+		return nil // 标号对不上
+	}
+	// 检查转账数量
+	ttb := int64(item.BitcoinEffectiveGenesis)
+	btcs := int64(item.BitcoinQuantity)
+	if btcs < 1 && btcs > 10000 {
+		return nil // 转移的比特币最小一枚，最大 10000 枚（超过10000的按1000计算）
+	}
+	var totalAddHAC int64 = 0
+	for i := ttb + 1; i <= ttb+btcs; i++ {
+		totalAddHAC += MoveBtcCoinRewardNumber(i)
+	}
+	if totalAddHAC != int64(item.AdditionalTotalHacAmount) {
+		return nil // 增发的hac对不上
+	}
+	// ok
+	return item
+}
