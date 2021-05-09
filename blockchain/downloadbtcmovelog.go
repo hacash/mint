@@ -12,8 +12,7 @@ import (
 // 下载比特币单向转移记录
 func (bc *BlockChain) downLoadBTCMoveLog() {
 
-	sleepTimeErr := time.Minute * 45
-	sleepTimeEmpty := time.Hour * 8
+	sleepTime := time.Hour * 8
 
 	// test start
 	//sleepTimeErr = time.Second * 3
@@ -53,12 +52,8 @@ func (bc *BlockChain) downLoadBTCMoveLog() {
 		// 读取
 		pagedata, err := readSatoshiGenesisByUrl(downloadUrl, addgetstart, addgetlimit)
 		if err != nil || len(pagedata) == 0 {
-			time.Sleep(sleepTimeErr)
-			continue // 下载错误，休眠后重试
-		}
-		if len(pagedata) == 0 {
 			// 下载为空
-			time.Sleep(sleepTimeEmpty)
+			time.Sleep(sleepTime)
 			continue // 数据为空，休眠 8 小时 后重试
 		}
 		lastpageData = append(lastpageData, pagedata...)
@@ -75,7 +70,7 @@ func (bc *BlockChain) downLoadBTCMoveLog() {
 			continue // 立即下一页
 		}
 		// 休眠8小时后继续
-		time.Sleep(sleepTimeEmpty)
+		time.Sleep(sleepTime)
 		continue
 	}
 }
