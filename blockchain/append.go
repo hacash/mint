@@ -186,6 +186,37 @@ func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock int
 	return nil
 }
 
+// 不安全的升级数据库
+func (bc *BlockChain) insertBlockToChainStateAndStoreUnsafe(newblock interfaces.Block) error {
+	// 状态
+	newBlockChainState, e7 := bc.chainstate.NewSubBranchTemporaryChainState()
+	if e7 != nil {
+		return e7
+	}
+	newBlockChainState.SetPendingBlockHeight(newblock.GetHeight()) // set pending
+	newBlockChainState.SetPendingBlockHash(newblock.Hash())        // set pending
+	defer newBlockChainState.DestoryTemporary()
+	// setup debug
+	if newblock.GetHeight() == 1 {
+		setupDebugChainState(newBlockChainState) // first state setup
+	}
+	err2 := newblock.WriteinChainState(newBlockChainState)
+	if err2 != nil {
+		return err2
+	}
+	// 储存状态数据
+	err3 := bc.chainstate.MergeCoverWriteChainState(newBlockChainState)
+	if err3 != nil {
+		return err3
+	}
+	err4 := bc.chainstate.SubmitDataStoreWriteToInvariableDisk(newblock)
+	if err4 != nil {
+		return err4
+	}
+	// ok
+	return nil
+}
+
 // first debug amount
 func setupDebugChainState(chainstate interfaces.ChainStateOperation) {
 

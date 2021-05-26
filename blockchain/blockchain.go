@@ -37,17 +37,22 @@ type BlockChain struct {
 func NewBlockChain(config *BlockChainConfig) (*BlockChain, error) {
 
 	cscnf := chainstate.NewChainStateConfig(config.cnffile)
+	// 是否为数据库重建模式
+	cscnf.DatabaseVersionRebuildMode = config.DatabaseVersionRebuildMode
 	csobject, e1 := chainstate.NewChainState(cscnf)
 	if e1 != nil {
+		fmt.Println("chainstate.NewChainState Error", e1)
 		return nil, e1
 	}
 	stocnf := blockstore.NewBlockStoreConfig(config.cnffile)
 	stobject, e2 := blockstore.NewBlockStore(stocnf)
 	if e2 != nil {
+		fmt.Println("blockstore.NewBlockStore Error", e2)
 		return nil, e2
 	}
 	e3 := csobject.SetBlockStore(stobject) // set chain store
 	if e3 != nil {
+		fmt.Println("csobject.SetBlockStore Error", e3)
 		return nil, e3
 	}
 	// new
@@ -60,6 +65,12 @@ func NewBlockChain(config *BlockChainConfig) (*BlockChain, error) {
 	}
 	// return
 	return blockchain, nil
+}
+
+func (bc *BlockChain) Close() {
+	if bc.chainstate != nil {
+		bc.chainstate.Close()
+	}
 }
 
 func (bc *BlockChain) Start() {

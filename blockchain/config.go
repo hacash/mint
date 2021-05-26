@@ -12,12 +12,15 @@ type BlockChainConfig struct {
 	DownloadBTCMoveLogUrl     string
 	DisableDownloadBTCMoveLog bool // 不下载日志
 
+	// 数据库重建模式
+	DatabaseVersionRebuildMode bool
 }
 
 func NewEmptyBlockChainConfig() *BlockChainConfig {
 	cnf := &BlockChainConfig{
-		RollbackToHeight:      0,
-		DownloadBTCMoveLogUrl: "",
+		RollbackToHeight:           0,
+		DownloadBTCMoveLogUrl:      "",
+		DatabaseVersionRebuildMode: false,
 	}
 	return cnf
 }
