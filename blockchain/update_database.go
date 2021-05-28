@@ -56,8 +56,8 @@ func CheckAndUpdateBlockchainDatabaseVersion(ini *sys.Inicnf) {
 	fmt.Print("[Database] Upgrade blockchain database version, Please wait and do not close the program...\n[Database] Checking block height:          0")
 
 	// 并行读取和写入
-	updateDataCh := make(chan []byte, 1000)
-	updateBlockCh := make(chan interfaces.Block, 1000)
+	updateDataCh := make(chan []byte, 20)
+	updateBlockCh := make(chan interfaces.Block, 20)
 	finishWait := sync.WaitGroup{}
 	finishWait.Add(3)
 
