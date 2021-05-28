@@ -6,6 +6,7 @@ import (
 	"github.com/hacash/core/genesis"
 	"github.com/hacash/core/interfaces"
 	"github.com/hacash/core/stores"
+	"github.com/hacash/core/sys"
 	"github.com/hacash/x16rs"
 	"strings"
 )
@@ -15,6 +16,12 @@ func (b *BlockChain) ValidateDiamondCreateAction(action interfaces.Action) error
 	if !ok {
 		return fmt.Errorf("its not Action_4_DiamondCreate Action.")
 	}
+
+	// 开发者模式，不做检查
+	if sys.TestDebugLocalDevelopmentMark {
+		return nil // 开发者模式不检查返回成功
+	}
+
 	last, err := b.State().ReadLastestDiamond()
 	if err != nil {
 		return err

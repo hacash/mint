@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"github.com/hacash/chain/blockstore"
 	"github.com/hacash/core/blocks"
+	"github.com/hacash/core/interfaces"
 	"github.com/hacash/core/sys"
+	"sync"
 )
 
 // 检查升级数据库版本
@@ -42,6 +44,7 @@ func CheckAndUpdateBlockchainDatabaseVersion(ini *sys.Inicnf) {
 
 	// 建立新状态
 	bccnf := NewBlockChainConfig(ini)
+	bccnf.DatabaseVersionRebuildMode = true // 数据库重建模式
 	newblockchain, e1 := NewBlockChain(bccnf)
 	if e1 != nil {
 		fmt.Println("Check And Update Blockchain Database Version, NewBlockChain Error:", e1.Error())
@@ -50,44 +53,90 @@ func CheckAndUpdateBlockchainDatabaseVersion(ini *sys.Inicnf) {
 	defer newblockchain.Close()
 
 	// 依次读取区块，并插入新状态
-	readblockhei := uint64(1)
 	fmt.Print("[Database] Upgrade blockchain database version, Please wait and do not close the program...\n[Database] Checking block height:          0")
-	for {
-		//fmt.Println("1")
-		_, body, e := oldblockDB.ReadBlockBytesByHeight(readblockhei, 0)
-		if e != nil {
-			fmt.Println("Check And Update Blockchain Database Version, ReadBlockBytesByHeight Error:", e.Error())
-			return // 发生错误，返回
+
+	// 并行读取和写入
+	updateDataCh := make(chan []byte, 1000)
+	updateBlockCh := make(chan interfaces.Block, 1000)
+	finishWait := sync.WaitGroup{}
+	finishWait.Add(3)
+
+	// 读取数据
+	go func() {
+		readblockhei := uint64(0)
+		for {
+			readblockhei++
+			//fmt.Println("1")
+			_, body, e := oldblockDB.ReadBlockBytesByHeight(readblockhei, 0)
+			if e != nil {
+				fmt.Println("Check And Update Blockchain Database Version, ReadBlockBytesByHeight Error:", e.Error())
+				break // 发生错误，返回
+			}
+			if len(body) == 0 {
+				break // 全部结束
+			}
+			// 写入数据
+			updateDataCh <- body
 		}
-		//fmt.Println("2")
-		if len(body) == 0 {
-			fmt.Printf("\b\b\b\b\b\b\b\b\b\b%10d", readblockhei-1)
-			break // 已经读取完毕
+		// 读取完毕
+		updateDataCh <- nil
+		finishWait.Done()
+	}()
+
+	// 解析区块
+	go func() {
+		for {
+			body := <-updateDataCh
+			if body == nil {
+				break // 完毕
+			}
+			//fmt.Println("3")
+			// 解析区块
+			blk, _, e2 := blocks.ParseBlock(body, 0)
+			if e2 != nil {
+				fmt.Println("Check And Update Blockchain Database Version, ParseBlock Error:", e2.Error())
+				break // 发生错误，返回
+			}
+			// 写入数据
+			updateBlockCh <- blk
 		}
-		//fmt.Println("3")
-		// 解析区块
-		blk, _, e2 := blocks.ParseBlock(body, 0)
-		if e2 != nil {
-			fmt.Println("Check And Update Blockchain Database Version, ParseBlock Error:", e2.Error())
-			return // 发生错误，返回
+		// 读取完毕
+		updateBlockCh <- nil
+		finishWait.Done()
+	}()
+
+	// 写入区块数据
+	go func() {
+		readblockhei := uint64(1)
+		for {
+			blk := <-updateBlockCh
+			if blk == nil {
+				fmt.Printf("\b\b\b\b\b\b\b\b\b\b%10d", readblockhei)
+				break // 完毕
+			}
+
+			//fmt.Println("4")
+			// 插入区块（升级模式）
+			e3 := newblockchain.insertBlockToChainStateAndStoreUnsafe(blk)
+			if e3 != nil {
+				fmt.Println("Check And Update Blockchain Database Version, InsertBlock Error:", e3.Error())
+				break // 发生错误，返回
+			}
+			//fmt.Println("5")
+			// 打印
+			if readblockhei%1000 == 0 {
+				//fmt.Printf("%d", readblockhei)
+				fmt.Printf("\b\b\b\b\b\b\b\b\b\b%10d", readblockhei)
+			}
+			//fmt.Println("6")
+			// next block
+			readblockhei++
 		}
-		//fmt.Println("4")
-		// 插入区块（升级模式）
-		e3 := newblockchain.insertBlockToChainStateAndStoreUnsafe(blk)
-		if e3 != nil {
-			fmt.Println("Check And Update Blockchain Database Version, InsertBlock Error:", e3.Error())
-			return // 发生错误，返回
-		}
-		//fmt.Println("5")
-		// 打印
-		if readblockhei%1000 == 0 {
-			//fmt.Printf("%d", readblockhei)
-			fmt.Printf("\b\b\b\b\b\b\b\b\b\b%10d", readblockhei)
-		}
-		//fmt.Println("6")
-		// next block
-		readblockhei++
-	}
+		// 插入结束
+		finishWait.Done()
+	}()
+
+	finishWait.Wait()
 
 	//fmt.Println("7", olddir)
 	// 删除旧版本
