@@ -21,13 +21,13 @@ func Test_t1(t *testing.T) {
 func Test_t2(t *testing.T) {
 
 	var ttp float64 = 0
-	var step float64 = 1
+	var step float64 = 0.5
 	var tthacount float64 = 0
 	var ttdesc float64 = 0
 
 	for {
 		// 计算可借出数量
-		loanhac, predeshac := CalculationOfInterestDiamondMortgageLoanAmount(ttp)
+		loanhac, predeshac := CalculationOfInterestBitcoinMortgageLoanAmount(ttp)
 
 		// 实际得到
 		realgot := loanhac - predeshac

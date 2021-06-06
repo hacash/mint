@@ -1,9 +1,9 @@
 package coinbase
 
-// 钻石抵押借贷： 计算可借数量
+// 比特币抵押借贷： 计算可借数量
 // totalLendingPercentage 已经借出的总百分比
 // 返回可借数量和预付利息
-func CalculationOfInterestDiamondMortgageLoanAmount(totalLendingPercentage float64) (float64, float64) {
+func CalculationOfInterestBitcoinMortgageLoanAmount(totalLendingPercentage float64) (float64, float64) {
 
 	ttp := totalLendingPercentage
 
@@ -16,23 +16,14 @@ func CalculationOfInterestDiamondMortgageLoanAmount(totalLendingPercentage float
 	loanhac = ((float64(100)/ttp)-1)*10 + 1
 
 	// 接触数量调整
-	/*
-		if totalLendingPercentage < baserate {
-			loanhac += 100 *  ((baserate - totalLendingPercentage) / baserate)
-		}
-	*/
-
-	loanculty := float64(10) // 借出难度
-	loanper := float64(0.78002)
-	if ttp <= loanculty+1 {
-		loanhac -= (loanhac * loanper) * ((loanculty - (ttp - 1)) / loanculty)
+	if loanhac > 200 {
+		loanhac = 200 + (200 * ((5 - totalLendingPercentage) / 5))
 	}
 
 	// 预先付息数量
-	predeshac := float64(1)
-	rateculty := float64(16) // 前期利息难度
-	if ttp <= rateculty+1 {
-		predeshac += loanhac * (loanper / 10 * ((rateculty - (ttp - 1)) / rateculty))
+	predeshac := float64(loanhac) * 0.02
+	if predeshac < 1 {
+		predeshac = 1
 	}
 
 	// 返回可借数量和预付利息

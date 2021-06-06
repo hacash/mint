@@ -53,7 +53,7 @@ func CheckAndUpdateBlockchainDatabaseVersion(ini *sys.Inicnf) {
 	defer newblockchain.Close()
 
 	// 依次读取区块，并插入新状态
-	fmt.Print("[Database] Upgrade blockchain database version, Please wait and do not close the program...\n[Database] Checking block height:          0")
+	fmt.Print("[Database] Upgrade blockchain database version, block data is NOT resynchronized, Please wait and do not close the program...\n[Database] Checking block height:          0")
 
 	// 并行读取和写入
 	updateDataCh := make(chan []byte, 20)
