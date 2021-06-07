@@ -41,11 +41,16 @@ func Test_t2(t *testing.T) {
 
 		// 数值打印
 		fmt.Printf("抵押总比例: %.2f/100 , HAC可借: %0.2f , 预付息: %0.2f , 实得: %0.2f , 年利率: %0.2f%%\n", ttp, loanhac, predeshac, realgot, yearrate)
+		if ttp < 11 {
+			ttp += 0.5
+		} else {
+			ttp += 1
+		}
 
 		if ttp >= 99.8 {
 			break
 		} else {
-			ttp += step
+			// ttp += step
 			continue
 		}
 
