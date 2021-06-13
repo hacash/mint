@@ -100,7 +100,7 @@ func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock int
 	}
 	// check coinbase reward
 	shouldrewards := coinbase.BlockCoinBaseReward(newBlockHeight)
-	if newblockCoinbaseReward.Equal(shouldrewards) != true {
+	if newblockCoinbaseReward.NotEqual(shouldrewards) {
 		return fmt.Errorf(errmsgprifix+"Block coinbase reward need %s got %s.", shouldrewards, newblockCoinbaseReward.ToFinString())
 	}
 	// check hash difficulty
