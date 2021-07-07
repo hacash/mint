@@ -25,6 +25,9 @@ func Test_t2(t *testing.T) {
 	var tthacount float64 = 0
 	var ttdesc float64 = 0
 
+	fmt.Printf("|抵押总比例|HAC可借数|预付利息|实际借得|年利率|\n")
+	fmt.Printf("|---|---|---|---|---|\n")
+
 	for {
 		// 计算可借出数量
 		loanhac, predeshac := CalculationOfInterestBitcoinMortgageLoanAmount(ttp)
@@ -40,7 +43,7 @@ func Test_t2(t *testing.T) {
 		ttdesc += predeshac
 
 		// 数值打印
-		fmt.Printf("抵押总比例: %.2f/100 , HAC可借: %0.2f , 预付息: %0.2f , 实得: %0.2f , 年利率: %0.2f%%\n", ttp, loanhac, predeshac, realgot, yearrate)
+		fmt.Printf("|%.2f%% | %0.2f | %0.2f | %0.2f | %0.2f%%|\n", ttp, loanhac, predeshac, realgot, yearrate)
 		if ttp < 11 {
 			ttp += 0.5
 		} else {
@@ -56,7 +59,7 @@ func Test_t2(t *testing.T) {
 
 	}
 
-	fmt.Println("总增发:", tthacount*step, "预付息:", ttdesc*step)
+	fmt.Println("\n总增发:", tthacount*step, "预付息:", ttdesc*step)
 
 	time.Sleep(time.Second)
 
