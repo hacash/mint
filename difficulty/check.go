@@ -11,14 +11,14 @@ func CheckHashDifficultySatisfyByDiffnum(blkhash []byte, blkhei uint64, diffnum 
 	return CheckHashDifficultySatisfy(blkhash, targetdiffhash)
 }
 
-func CheckHashDifficultySatisfy(hx1, hx2 []byte) bool {
-	if len(hx1) != 32 || len(hx2) != 32 {
+func CheckHashDifficultySatisfy(result_hash, target_diffculty_hash []byte) bool {
+	if len(result_hash) != 32 || len(target_diffculty_hash) != 32 {
 		panic("CheckHashDifficultySatisfy hx1, hx2 size must be 32.")
 	}
 	for k := 0; k < 32; k++ {
-		if hx1[k] < hx2[k] {
+		if result_hash[k] < target_diffculty_hash[k] {
 			return true
-		} else if hx1[k] > hx2[k] {
+		} else if result_hash[k] > target_diffculty_hash[k] {
 			return false
 		}
 	}
