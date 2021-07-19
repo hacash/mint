@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"github.com/hacash/x16rs"
 	"math/big"
 )
 
@@ -28,7 +27,41 @@ func pow(value *big.Int, x int) *big.Int {
 	return num
 }
 
+// 转换为 哈希 为算力显示
+func ConvertDifficultyToRateShow(diffnum uint32, usetimesec int64) string {
+	hxworth := CalculateDifficultyWorth(diffnum)
+	hashrate := new(big.Int).Div(hxworth, big.NewInt(usetimesec))
+	hashrateshow := ConvertPowPowerToShowFormat(hashrate)
+	return hashrateshow
+}
+
+// 转换为 哈希 为算力显示
+func ConvertHashToRateShow(hx []byte, usetimesec int64) string {
+	hxworth := CalculateHashWorth(hx)
+	hashrate := new(big.Int).Div(hxworth, big.NewInt(usetimesec))
+	hashrateshow := ConvertPowPowerToShowFormat(hashrate)
+	return hashrateshow
+}
+
 func ConvertPowPowerToShowFormat(value *big.Int) string {
+	divn := new(big.Float).SetUint64(1000)
+	exts := "KMGTPEZYBNDCX"
+	basn := new(big.Float).SetInt(value)
+	ext := ""
+	if basn.Cmp(divn) == 1 {
+		for i := 0; i < len(exts); i++ {
+			resv := new(big.Float).Quo(basn, divn)
+			ext = string(exts[i])
+			basn = resv
+			if resv.Cmp(divn) == -1 {
+				break
+			}
+		}
+	}
+	return fmt.Sprintf("%.3f%sH/s", basn, ext)
+}
+
+func ConvertPowPowerToShowFormat_old2(value *big.Int) string {
 	stepn := new(big.Int).SetUint64(1000)
 	if value.Cmp(stepn) <= 0 {
 		return value.String() + "H/s"
@@ -71,20 +104,22 @@ func ConvertPowPowerToShowFormat_old(value *big.Int) string {
 ///////////////////////////////////////////
 
 // 计算哈希价值
-func CalculateHashWorth(curheight uint64, hash []byte) *big.Int {
+func CalculateHashWorth(hash []byte) *big.Int {
 	worth := DifficultyHashToBig(antimatterHash(hash))
-	repeat := x16rs.HashRepeatForBlockHeight(curheight)
-	targetHashWorth := new(big.Int).Mul(worth, new(big.Int).SetUint64(uint64(repeat)))
-	return targetHashWorth
+	return worth
+	//repeat := x16rs.HashRepeatForBlockHeight(curheight)
+	//targetHashWorth := new(big.Int).Mul(worth, new(big.Int).SetUint64(uint64(repeat)))
+	//return targetHashWorth
 }
 
 // 计算难度价值
-func CalculateDifficultyWorth(curheight uint64, diffnum uint32) *big.Int {
+func CalculateDifficultyWorth(diffnum uint32) *big.Int {
 	diffhx := DifficultyUint32ToHashForAntimatter(diffnum)
 	worth := DifficultyHashToBig(antimatterHash(diffhx))
-	repeat := x16rs.HashRepeatForBlockHeight(curheight)
-	targetHashWorth := new(big.Int).Mul(worth, new(big.Int).SetUint64(uint64(repeat)))
-	return targetHashWorth
+	return worth
+	//repeat := x16rs.HashRepeatForBlockHeight(curheight)
+	//targetHashWorth := new(big.Int).Mul(worth, new(big.Int).SetUint64(uint64(repeat)))
+	//return targetHashWorth
 }
 
 // 计算哈希价值
@@ -107,7 +142,7 @@ func CalculateHashWorth_old(hash []byte) *big.Int {
 }
 
 // 反物质哈希
-func antimatterHash(hx []byte) []byte {
+func antimatterHash_old(hx []byte) []byte {
 
 	prefixzorenum := 0
 	basevalbts := []byte{0, 0, 0, 0}
@@ -131,15 +166,56 @@ func antimatterHash(hx []byte) []byte {
 	return buf.Bytes()
 }
 
-func antimatterHash_old(hx []byte) []byte {
+func antimatterHash_old2(hx []byte) []byte {
 
-	tar := make([]byte, len(hx))
-	a := 0
-	for i := len(hx) - 1; i >= 0; i-- {
-		tar[a] = 255 - hx[i]
-		a += 1
+	tar := make([]byte, 0)
+	for i := 0; i < len(hx); i++ {
+		if hx[i] == 0 {
+			tar = append(tar, 255)
+		} else if hx[i] == 255 {
+			break // 结束
+		} else {
+			prx := []byte{255 - hx[i]}
+			tar = append(prx, tar...)
+			break
+		}
 	}
-
 	return tar
+
+}
+
+func antimatterHash(hx []byte) []byte {
+
+	size := len(hx)
+	zorenum := 1
+	basenum := make([]byte, 0)
+	// 第一步：拆解
+	for i := 0; i < size; i++ {
+		if hx[i] == 0 {
+			zorenum++
+		} else {
+			for a := 0; a < 3; a++ {
+				if i+a < size {
+					basenum = append(basenum, 255-hx[i+a])
+				} else {
+					basenum = append(basenum, 0)
+				}
+			}
+			break
+		}
+	}
+	sbxzore := bytes.Repeat([]byte{0}, zorenum)
+	//fmt.Println(basenum, zorenum, sbxzore)
+	// 第二步 合并
+	for x := 0; x < len(sbxzore) && x < len(basenum); x++ {
+		sbxzore[x] = basenum[x]
+	}
+	if zorenum > 0 {
+		if sbxzore[0] == 0 {
+			sbxzore[0] = 1
+		}
+	}
+	// 返回
+	return sbxzore
 
 }

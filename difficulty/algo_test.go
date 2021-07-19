@@ -9,14 +9,6 @@ import (
 )
 
 // 计算哈希价值
-func CalculateHashWorthV2(hash []byte) *big.Int {
-	maxvalhx := bytes.Repeat([]byte{255}, 32)
-	maxwh := DifficultyHashToBig(maxvalhx)
-	worth := DifficultyHashToBig(hash)
-	return new(big.Int).Sub(maxwh, worth)
-}
-
-// 计算哈希价值
 func CalculateHashWorthV2_old(hash []byte) *big.Int {
 	mulstep := big.NewInt(256)
 	worth := big.NewInt(1)
@@ -40,7 +32,7 @@ func Test_t1(t *testing.T) {
 
 		copy(basehx, []byte{uint8(i)})
 		//fmt.Println( basehx, BytesToBits(basehx) )
-		fmt.Println(basehx[0:4], BytesToBits(basehx)[0:16], CalculateHashWorth(1, basehx), CalculateHashWorthV2(basehx))
+		fmt.Println(basehx[0:4], BytesToBits(basehx)[0:16], CalculateHashWorth(1, basehx))
 
 	}
 }
@@ -48,13 +40,30 @@ func Test_t1(t *testing.T) {
 func Test_t2(t *testing.T) {
 
 	hxstrs := []string{
-		"000000000760ee37af3db8dcad3fa8cae3beb9a54d78906fe3c859a8efc16a93",
+		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+		"feffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+		"00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+		"00feffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+		"0000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+		"000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+		"00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+		"00000000fffffeffffffffffffffffffffffffffffffffffffffffffffffffff",
+		"00000000fdffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+		"00000000fd60ee37af3db8dcad3fa8cae3beb9a54d78906fe3c859a8efc16a93",
+		"000000000030ee37af3db8dcad3fa8cae3beb9a54d78906fe3c859a8efc16a93",
+		"000000000000e037af3db8dcad3fa8cae3beb9a54d78906fe3c859a8efc16a93",
+		"000000000000b037af3db8dcad3fa8cae3beb9a54d78906fe3c859a8efc16a93",
+		"0000000000006037af3db8dcad3fa8cae3beb9a54d78906fe3c859a8efc16a93",
 	}
 
 	for _, v := range hxstrs {
 		hx, _ := hex.DecodeString(v)
+		worth := DifficultyHashToBig(antimatterHash(hx))
+		fmt.Println(v, antimatterHash(hx), worth, ConvertPowPowerToShowFormat(worth))
+		//fmt.Print("\n-------------------\n\n")
 		//fmt.Println( hx, BytesToBits(hx), CalculateHashWorth(hx), CalculateHashWorthV2(hx) )
-		fmt.Println(v, DifficultyHashToBig(antimatterHash(hx)).String())
+		//fmt.Println(v, antimatterHash_old2(hx), DifficultyHashToBig(antimatterHash_old2(hx)).String())
+		//fmt.Println(v, antimatterHash(hx),DifficultyHashToBig(antimatterHash(hx)).String())
 	}
 
 }
