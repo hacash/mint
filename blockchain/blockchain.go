@@ -20,18 +20,18 @@ type BlockChain struct {
 
 	////////////////////////
 
-	validatedBlockInsertFeed event.Feed
-	diamondCreateFeed        event.Feed
+	validatedBlockInsertFeed *event.Feed
+	diamondCreateFeed        *event.Feed
 
 	////////////////////////
 
 	// data cache
 	prev288BlockTimestamp       map[uint64]uint64
-	prev288BlockTimestampLocker sync.Mutex
+	prev288BlockTimestampLocker *sync.Mutex
 
 	////////////////////////
 
-	insertLock sync.Mutex
+	insertLock *sync.Mutex
 }
 
 func NewBlockChain(config *BlockChainConfig) (*BlockChain, error) {
@@ -57,14 +57,27 @@ func NewBlockChain(config *BlockChainConfig) (*BlockChain, error) {
 	}
 	// new
 	blockchain := &BlockChain{
-		config:     config,
-		chainstate: csobject,
-		// newBlockArriveQueueCh:       make(chan interfaces.Block, 10),
-		// newTransactionArriveQueueCh: make(chan interfaces.Transaction, 50),
-		prev288BlockTimestamp: map[uint64]uint64{},
+		config:                      config,
+		chainstate:                  csobject,
+		validatedBlockInsertFeed:    &event.Feed{},
+		diamondCreateFeed:           &event.Feed{},
+		prev288BlockTimestampLocker: &sync.Mutex{},
+		prev288BlockTimestamp:       map[uint64]uint64{},
+		insertLock:                  &sync.Mutex{},
 	}
 	// return
 	return blockchain, nil
+}
+
+// 替换自己
+func (bc *BlockChain) ReplaceSelf(new *BlockChain) {
+	bc.config = new.config
+	bc.chainstate = new.chainstate
+	bc.validatedBlockInsertFeed = new.validatedBlockInsertFeed
+	bc.diamondCreateFeed = new.diamondCreateFeed
+	bc.prev288BlockTimestamp = new.prev288BlockTimestamp
+	bc.prev288BlockTimestampLocker = new.prev288BlockTimestampLocker
+	bc.insertLock = new.insertLock
 }
 
 func (bc *BlockChain) Close() {

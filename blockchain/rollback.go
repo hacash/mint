@@ -2,8 +2,6 @@ package blockchain
 
 import (
 	"fmt"
-	"github.com/hacash/core/blocks"
-	"github.com/hacash/core/interfaces"
 	"os"
 	"path"
 )
@@ -43,7 +41,7 @@ func (bc *BlockChain) RollbackToBlockHeight(targetblockheight uint64) (uint64, e
 	}
 
 	// copy state
-	bc.chainstate = newbc.chainstate
+	bc.ReplaceSelf(newbc)
 
 	// ok
 	return targetblockheight, nil
@@ -51,6 +49,7 @@ func (bc *BlockChain) RollbackToBlockHeight(targetblockheight uint64) (uint64, e
 }
 
 // 旧版
+/*
 func (bc *BlockChain) RollbackToBlockHeightOld(targetblockheight uint64) (uint64, error) {
 
 	panic("RecoverChainState be deprecated")
@@ -114,3 +113,4 @@ func (bc *BlockChain) RollbackToBlockHeightOld(targetblockheight uint64) (uint64
 	return 0, fmt.Errorf("error break.")
 
 }
+*/
