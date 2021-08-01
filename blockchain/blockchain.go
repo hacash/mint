@@ -2,8 +2,8 @@ package blockchain
 
 import (
 	"fmt"
-	"github.com/hacash/chain/blockstore"
-	"github.com/hacash/chain/chainstate"
+	"github.com/hacash/chain/blockstorev2"
+	"github.com/hacash/chain/chainstatev2"
 	"github.com/hacash/core/interfaces"
 	"github.com/hacash/mint/event"
 	"os"
@@ -13,7 +13,7 @@ import (
 type BlockChain struct {
 	config *BlockChainConfig
 
-	chainstate *chainstate.ChainState
+	chainstate *chainstatev2.ChainState
 
 	//newBlockArriveQueueCh       chan interfaces.Block
 	//newTransactionArriveQueueCh chan interfaces.Transaction
@@ -36,16 +36,16 @@ type BlockChain struct {
 
 func NewBlockChain(config *BlockChainConfig) (*BlockChain, error) {
 
-	cscnf := chainstate.NewChainStateConfig(config.cnffile)
+	cscnf := chainstatev2.NewChainStateConfig(config.cnffile)
 	// 是否为数据库重建模式
 	cscnf.DatabaseVersionRebuildMode = config.DatabaseVersionRebuildMode
-	csobject, e1 := chainstate.NewChainState(cscnf)
+	csobject, e1 := chainstatev2.NewChainState(cscnf)
 	if e1 != nil {
 		fmt.Println("chainstate.NewChainState Error", e1)
 		return nil, e1
 	}
-	stocnf := blockstore.NewBlockStoreConfig(config.cnffile)
-	stobject, e2 := blockstore.NewBlockStore(stocnf)
+	stocnf := blockstorev2.NewBlockStoreConfig(config.cnffile)
+	stobject, e2 := blockstorev2.NewBlockStore(stocnf)
 	if e2 != nil {
 		fmt.Println("blockstore.NewBlockStore Error", e2)
 		return nil, e2

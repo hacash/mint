@@ -2,7 +2,7 @@ package blockchain
 
 import (
 	"fmt"
-	"github.com/hacash/chain/blockstore"
+	"github.com/hacash/chain/blockstorev2"
 	"github.com/hacash/core/blocks"
 	"github.com/hacash/core/interfaces"
 	"github.com/hacash/core/sys"
@@ -33,9 +33,9 @@ func CheckAndUpdateBlockchainDatabaseVersion(ini *sys.Inicnf) {
 
 	// 开始升级
 	oldblockdatadir := olddir + "/blockstore"
-	cnf1 := blockstore.NewEmptyBlockStoreConfig()
+	cnf1 := blockstorev2.NewEmptyBlockStoreConfig()
 	cnf1.Datadir = oldblockdatadir
-	oldblockDB, e0 := blockstore.NewBlockStoreForUpdateDatabaseVersion(cnf1)
+	oldblockDB, e0 := blockstorev2.NewBlockStoreForUpdateDatabaseVersion(cnf1)
 	if e0 != nil {
 		fmt.Println("Check And Update Blockchain Database Version Error:", e0.Error())
 		return // 发生错误，返回
