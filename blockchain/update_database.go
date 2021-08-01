@@ -9,36 +9,16 @@ import (
 	"sync"
 )
 
-// 检查升级数据库版本
-func CheckAndUpdateBlockchainDatabaseVersion(ini *sys.Inicnf) {
-	curversion := sys.BlockChainStateDatabaseCurrentUseVersion
-	_, has := ini.MustDataDirCheckVersion(curversion)
-	if has {
-		return // 当前版本已经存在，正常返回
-	}
-	// 需要升级，检查历史版本
-	olddir := ""
-	oldversion := curversion - 1
-	for {
-		if oldversion < sys.BlockChainStateDatabaseLowestCompatibleVersion {
-			// 已经低于最低可兼容版本了，表示区块出现了分叉，必须全部从网络重新同步
-			return
-		}
-		olddir, has = ini.MustDataDirCheckVersion(oldversion)
-		if has {
-			break
-		}
-		oldversion--
-	}
+func UpdateDatabaseReturnBlockChain(ini *sys.Inicnf, olddatadir string, maxtarhei uint64) (*BlockChain, error) {
 
 	// 开始升级
-	oldblockdatadir := olddir + "/blockstore"
+	oldblockdatadir := olddatadir + "/blockstore"
 	cnf1 := blockstorev2.NewEmptyBlockStoreConfig()
 	cnf1.Datadir = oldblockdatadir
 	oldblockDB, e0 := blockstorev2.NewBlockStoreForUpdateDatabaseVersion(cnf1)
 	if e0 != nil {
-		fmt.Println("Check And Update Blockchain Database Version Error:", e0.Error())
-		return // 发生错误，返回
+		// 发生错误，返回
+		return nil, fmt.Errorf("Check And Update Blockchain Database Version Error: %s", e0.Error())
 	}
 	defer oldblockDB.Close()
 
@@ -47,13 +27,10 @@ func CheckAndUpdateBlockchainDatabaseVersion(ini *sys.Inicnf) {
 	bccnf.DatabaseVersionRebuildMode = true // 数据库重建模式
 	newblockchain, e1 := NewBlockChain(bccnf)
 	if e1 != nil {
-		fmt.Println("Check And Update Blockchain Database Version, NewBlockChain Error:", e1.Error())
-		return // 发生错误，返回
+		return nil, fmt.Errorf("Check And Update Blockchain Database Version, NewBlockChain Error: %s", e1.Error())
+		// 发生错误，返回
 	}
 	defer newblockchain.Close()
-
-	// 依次读取区块，并插入新状态
-	fmt.Print("[Database] Upgrade blockchain database version, block data is NOT resynchronized, Please wait and do not close the program...\n[Database] Checking block height:          0")
 
 	// 并行读取和写入
 	updateDataCh := make(chan []byte, 20)
@@ -77,6 +54,10 @@ func CheckAndUpdateBlockchainDatabaseVersion(ini *sys.Inicnf) {
 			}
 			// 写入数据
 			updateDataCh <- body
+			// 判断最高同步
+			if readblockhei > 0 && maxtarhei <= readblockhei {
+				break // 完成全部
+			}
 		}
 		// 读取完毕
 		updateDataCh <- nil
@@ -137,6 +118,41 @@ func CheckAndUpdateBlockchainDatabaseVersion(ini *sys.Inicnf) {
 	}()
 
 	finishWait.Wait()
+
+	return newblockchain, nil
+}
+
+// 检查升级数据库版本
+func CheckAndUpdateBlockchainDatabaseVersion(ini *sys.Inicnf) {
+	curversion := sys.BlockChainStateDatabaseCurrentUseVersion
+	_, has := ini.MustDataDirCheckVersion(curversion)
+	if has {
+		return // 当前版本已经存在，正常返回
+	}
+	// 需要升级，检查历史版本
+	olddir := ""
+	oldversion := curversion - 1
+	for {
+		if oldversion < sys.BlockChainStateDatabaseLowestCompatibleVersion {
+			// 已经低于最低可兼容版本了，表示区块出现了分叉，必须全部从网络重新同步
+			return
+		}
+		olddir, has = ini.MustDataDirCheckVersion(oldversion)
+		if has {
+			break
+		}
+		oldversion--
+	}
+
+	// 依次读取区块，并插入新状态
+	fmt.Print("[Database] Upgrade blockchain database version, block data is NOT resynchronized, Please wait and do not close the program...\n[Database] Checking block height:          0")
+
+	_, e := UpdateDatabaseReturnBlockChain(ini, olddir, 0)
+	if e != nil {
+		fmt.Printf("Check And Update Blockchain Database Version, NewBlockChain Error: %s\n", e.Error())
+		// 发生错误，返回
+		return
+	}
 
 	//fmt.Println("7", olddir)
 	// 删除旧版本

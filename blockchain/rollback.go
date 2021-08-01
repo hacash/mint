@@ -4,9 +4,57 @@ import (
 	"fmt"
 	"github.com/hacash/core/blocks"
 	"github.com/hacash/core/interfaces"
+	"os"
+	"path"
 )
 
 func (bc *BlockChain) RollbackToBlockHeight(targetblockheight uint64) (uint64, error) {
+
+	fmt.Print("[BlockChain] Rollback to block height: ", targetblockheight, "... \n")
+
+	// 依次读取区块，并插入新状态
+	fmt.Print("[Database] Replay the block (NOT resynchronized), closing halfway will result in data corruption, Please wait and do not close the program...\n[Database] Checking block height:          0")
+
+	// 关闭旧的
+	bc.chainstate.Close()
+
+	// 重命名目录
+	olddir := path.Join(path.Dir(bc.config.Datadir), "rbnk")
+	e0 := os.RemoveAll(olddir)
+	if e0 != nil {
+		return 0, e0
+	}
+
+	e1 := os.Rename(bc.config.Datadir, olddir)
+	if e1 != nil {
+		return 0, e1
+	}
+
+	// replay
+	newbc, e2 := UpdateDatabaseReturnBlockChain(bc.config.cnffile, olddir, targetblockheight)
+
+	e3 := os.RemoveAll(olddir)
+	if e3 != nil {
+		return 0, e3
+	}
+
+	if e2 != nil {
+		return 0, e2
+	}
+
+	// copy state
+	bc.chainstate = newbc.chainstate
+
+	// ok
+	return targetblockheight, nil
+
+}
+
+// 旧版
+func (bc *BlockChain) RollbackToBlockHeightOld(targetblockheight uint64) (uint64, error) {
+
+	panic("RecoverChainState be deprecated")
+
 	lastest, err := bc.chainstate.ReadLastestBlockHeadAndMeta()
 	if err != nil {
 		return 0, err
