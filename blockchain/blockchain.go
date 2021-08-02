@@ -88,6 +88,8 @@ func (bc *BlockChain) Close() {
 
 func (bc *BlockChain) Start() {
 
+	fmt.Println("[BlockChain] Block chain state data dir: \"" + bc.config.Datadir + "\"")
+
 	bc.ifDoRollback() // set config to do rollback
 
 	go bc.loop()

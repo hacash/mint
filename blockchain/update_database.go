@@ -55,7 +55,7 @@ func UpdateDatabaseReturnBlockChain(ini *sys.Inicnf, olddatadir string, maxtarhe
 			// 写入数据
 			updateDataCh <- body
 			// 判断最高同步
-			if readblockhei > 0 && maxtarhei <= readblockhei {
+			if maxtarhei > 0 && maxtarhei <= readblockhei {
 				break // 完成全部
 			}
 		}
@@ -145,7 +145,7 @@ func CheckAndUpdateBlockchainDatabaseVersion(ini *sys.Inicnf) {
 	}
 
 	// 依次读取区块，并插入新状态
-	fmt.Print("[Database] Upgrade blockchain database version, block data is NOT resynchronized, Please wait and do not close the program...\n[Database] Checking block height:          0")
+	fmt.Printf("[Database] Upgrade blockchain database version v%d to v%d, block data is NOT resynchronized, Please wait and do not close the program...\n[Database] Checking block height:          0", oldversion, curversion)
 
 	_, e := UpdateDatabaseReturnBlockChain(ini, olddir, 0)
 	if e != nil {
