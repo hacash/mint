@@ -13,6 +13,10 @@ func (bc *BlockChain) RollbackToBlockHeight(targetblockheight uint64) (uint64, e
 	// 依次读取区块，并插入新状态
 	fmt.Print("[Database] Replay the block (NOT resynchronized), closing halfway will result in data corruption, Please wait and do not close the program...\n[Database] Checking block height:          0")
 
+	// 插入锁定，防止重放期间有新区块到来破坏数据
+	bc.insertLock.Lock()
+	defer bc.insertLock.Unlock()
+
 	// 关闭旧的
 	bc.chainstate.Close()
 
