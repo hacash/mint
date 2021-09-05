@@ -70,14 +70,9 @@ func NewBlockChain(config *BlockChainConfig) (*BlockChain, error) {
 }
 
 // 替换自己
-func (bc *BlockChain) ReplaceSelf(new *BlockChain) {
+func (bc *BlockChain) ReplaceChainstate(new *BlockChain) {
 	bc.config = new.config
 	bc.chainstate = new.chainstate
-	bc.validatedBlockInsertFeed = new.validatedBlockInsertFeed
-	bc.diamondCreateFeed = new.diamondCreateFeed
-	bc.prev288BlockTimestamp = new.prev288BlockTimestamp
-	bc.prev288BlockTimestampLocker = new.prev288BlockTimestampLocker
-	bc.insertLock = new.insertLock
 }
 
 func (bc *BlockChain) Close() {

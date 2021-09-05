@@ -9,7 +9,7 @@ import (
 	"sync"
 )
 
-func UpdateDatabaseReturnBlockChain(ini *sys.Inicnf, olddatadir string, maxtarhei uint64) (*BlockChain, error) {
+func UpdateDatabaseReturnBlockChain(ini *sys.Inicnf, olddatadir string, maxtarhei uint64, isclosenew bool) (*BlockChain, error) {
 
 	// 开始升级
 	oldblockdatadir := olddatadir + "/blockstore"
@@ -30,7 +30,10 @@ func UpdateDatabaseReturnBlockChain(ini *sys.Inicnf, olddatadir string, maxtarhe
 		return nil, fmt.Errorf("Check And Update Blockchain Database Version, NewBlockChain Error: %s", e1.Error())
 		// 发生错误，返回
 	}
-	defer newblockchain.Close()
+	// 外部决定是否关闭
+	if isclosenew {
+		newblockchain.Close()
+	}
 
 	// 并行读取和写入
 	updateDataCh := make(chan []byte, 20)
@@ -147,7 +150,7 @@ func CheckAndUpdateBlockchainDatabaseVersion(ini *sys.Inicnf) {
 	// 依次读取区块，并插入新状态
 	fmt.Printf("[Database] Upgrade blockchain database version v%d to v%d, block data is NOT resynchronized, Please wait and do not close the program...\n[Database] Checking block height:          0", oldversion, curversion)
 
-	_, e := UpdateDatabaseReturnBlockChain(ini, olddir, 0)
+	_, e := UpdateDatabaseReturnBlockChain(ini, olddir, 0, true)
 	if e != nil {
 		fmt.Printf("Check And Update Blockchain Database Version, NewBlockChain Error: %s\n", e.Error())
 		// 发生错误，返回

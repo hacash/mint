@@ -33,7 +33,7 @@ func (bc *BlockChain) RollbackToBlockHeight(targetblockheight uint64) (uint64, e
 	}
 
 	// replay
-	newbc, e2 := UpdateDatabaseReturnBlockChain(bc.config.cnffile, olddir, targetblockheight)
+	newbc, e2 := UpdateDatabaseReturnBlockChain(bc.config.cnffile, olddir, targetblockheight, false)
 
 	e3 := os.RemoveAll(olddir)
 	if e3 != nil {
@@ -45,7 +45,7 @@ func (bc *BlockChain) RollbackToBlockHeight(targetblockheight uint64) (uint64, e
 	}
 
 	// copy state
-	bc.ReplaceSelf(newbc)
+	bc.ReplaceChainstate(newbc)
 
 	// ok
 	return targetblockheight, nil
