@@ -77,7 +77,7 @@ func (bc *BlockChain) ReplaceChainstate(new *BlockChain) {
 
 func (bc *BlockChain) Close() {
 	bc.insertLock.Lock()
-	defer bc.insertLock.ULock()
+	defer bc.insertLock.Unlock()
 	if bc.chainstate != nil {
 		bc.chainstate.Close()
 	}
