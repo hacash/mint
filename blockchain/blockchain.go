@@ -31,7 +31,7 @@ type BlockChain struct {
 
 	////////////////////////
 
-	insertLock *sync.Mutex
+	insertLock *sync.RWMutex
 }
 
 func NewBlockChain(config *BlockChainConfig) (*BlockChain, error) {
@@ -63,7 +63,7 @@ func NewBlockChain(config *BlockChainConfig) (*BlockChain, error) {
 		diamondCreateFeed:           &event.Feed{},
 		prev288BlockTimestampLocker: &sync.Mutex{},
 		prev288BlockTimestamp:       map[uint64]uint64{},
-		insertLock:                  &sync.Mutex{},
+		insertLock:                  &sync.RWMutex{},
 	}
 	// return
 	return blockchain, nil
@@ -76,6 +76,8 @@ func (bc *BlockChain) ReplaceChainstate(new *BlockChain) {
 }
 
 func (bc *BlockChain) Close() {
+	bc.insertLock.Lock()
+	defer bc.insertLock.ULock()
 	if bc.chainstate != nil {
 		bc.chainstate.Close()
 	}
@@ -110,5 +112,7 @@ func (bc *BlockChain) ifDoRollback() {
 
 // interface api
 func (bc *BlockChain) State() interfaces.ChainState {
+	bc.insertLock.RLock()
+	defer bc.insertLock.RUnlock()
 	return bc.chainstate
 }
