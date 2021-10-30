@@ -26,6 +26,9 @@ export GOPATH=/media/yangjie/500GB/hacash/go
 cd mint/run/btcmovelogs
 go run main.go
 
+passwd 123456
+gentx btcmove 1 1001 1596702752 0 1 1048576 1MzNY1oA3kfgYi75zquj3SRUPYztzXHzK9 8deb5180a3388fee4991674c62705041616980e76288a8888b65530e41ccf90d 1MzNY1oA3kfgYi75zquj3SRUPYztzXHzK9 HAC4:244
+gentx release_lockbls 000000000000000000000000000000000001 HAC1024:248 1MzNY1oA3kfgYi75zquj3SRUPYztzXHzK9 HAC1:248
 
 go build -ldflags '-w -s' -o   hacash_btc_move_log_2021_04_25_01  mint/run/btcmovelogs/main.go
 
