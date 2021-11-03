@@ -41,18 +41,18 @@ func NewBlockChain(config *BlockChainConfig) (*BlockChain, error) {
 	cscnf.DatabaseVersionRebuildMode = config.DatabaseVersionRebuildMode
 	csobject, e1 := chainstatev2.NewChainState(cscnf)
 	if e1 != nil {
-		fmt.Println("chainstate.NewChainState Error", e1)
+		fmt.Println("chainstate.NewChainState Error:", e1)
 		return nil, e1
 	}
 	stocnf := blockstorev2.NewBlockStoreConfig(config.cnffile)
 	stobject, e2 := blockstorev2.NewBlockStore(stocnf)
 	if e2 != nil {
-		fmt.Println("blockstore.NewBlockStore Error", e2)
+		fmt.Println("blockstore.NewBlockStore Error:", e2)
 		return nil, e2
 	}
 	e3 := csobject.SetBlockStore(stobject) // set chain store
 	if e3 != nil {
-		fmt.Println("csobject.SetBlockStore Error", e3)
+		fmt.Println("csobject.SetBlockStore Error:", e3)
 		return nil, e3
 	}
 	// new
@@ -83,7 +83,7 @@ func (bc *BlockChain) Close() {
 	}
 }
 
-func (bc *BlockChain) Start() {
+func (bc *BlockChain) Start() error {
 
 	fmt.Println("[BlockChain] Block chain state data dir: \"" + bc.config.Datadir + "\"")
 
@@ -95,6 +95,7 @@ func (bc *BlockChain) Start() {
 		go bc.downLoadBTCMoveLog()
 	}
 
+	return nil
 }
 
 func (bc *BlockChain) ifDoRollback() {
