@@ -104,7 +104,7 @@ func newBlocksDataArrive(blockchain *BlockChain, datas []byte) (int, error) {
 		//fmt.Println(newblock.GetHeight())
 		seek = sk
 		// do store
-		blockchain.newBlockArriveQueueCh <- newblock
+		blockchain.InsertBlock(newblock, "test")
 		start_block_height = int(newblock.GetHeight()) + 1
 	}
 	// ok
