@@ -30,6 +30,12 @@ func UpdateDatabaseReturnBlockChain(ini *sys.Inicnf, olddatadir string, maxtarhe
 		return nil, fmt.Errorf("Check And Update Blockchain Database Version, NewBlockChain Error: %s", e1.Error())
 		// 发生错误，返回
 	}
+	// 模式恢复
+	defer func() {
+		bccnf.DatabaseVersionRebuildMode = false                  // 模式恢复
+		newblockchain.State().RecoverDatabaseVersionRebuildMode() // 模式恢复
+	}()
+
 	// 外部决定是否关闭
 	if isclosenew {
 		newblockchain.Close()
