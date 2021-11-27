@@ -10,9 +10,7 @@ import (
 func (bc *BlockChain) ValidateTransaction(newtx interfaces.Transaction, callchainstate func(interfaces.ChainState)) error {
 	newtxhash := newtx.Hash()
 	txhxhex := newtxhash.ToHex()
-	blockstore := bc.chainstate.BlockStore()
-	exist, e0 := blockstore.TransactionIsExist(newtxhash)
-	//_, exist_tx_bytes, _ := blockstore.ReadTransactionBytesByHash( newtxhash )
+	exist, e0 := bc.chainstate.CheckTxHash(newtxhash)
 	//fmt.Println(exist, exist_tx_bytes)
 	if e0 != nil {
 		return e0

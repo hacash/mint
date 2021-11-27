@@ -122,13 +122,13 @@ func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock int
 	// 判断包含交易是否已经存在 和 区块大小 和 交易时间戳
 	timenow := uint64(time.Now().Unix())
 	totaltxsize := uint32(0)
-	blockstore := bc.chainstate.BlockStore()
+	//blockstore := bc.chainstate.BlockStore()
 	for i := 1; i < len(newblktxs); i++ { // ignore coinbase tx
 		if newblktxs[i].GetTimestamp() > timenow {
 			return fmt.Errorf(errmsgprifix+"Tx timestamps %d is not more than now %d.", newblktxs[i].GetTimestamp(), timenow)
 		}
 		txhashnofee := newblktxs[i].Hash()
-		ok, e := blockstore.TransactionIsExist(txhashnofee)
+		ok, e := bc.chainstate.CheckTxHash(txhashnofee)
 		if e != nil {
 			return e
 		}

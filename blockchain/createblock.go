@@ -37,7 +37,6 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfaces.Transacti
 	}
 	blockTempState.SetPendingBlockHeight(nextblock.GetHeight())
 	defer blockTempState.DestoryTemporary()
-	chainstore := bc.chainstate.BlockStore()
 	// append tx
 	removeTxs := make([]interfaces.Transaction, 0)
 	totaltxs := uint32(0)
@@ -45,7 +44,7 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfaces.Transacti
 
 	for _, tx := range txlist {
 		// 检查tx是否存在
-		txinchain, e0 := chainstore.TransactionIsExist(tx.Hash())
+		txinchain, e0 := bc.chainstate.CheckTxHash(tx.Hash())
 		if e0 != nil || txinchain {
 			removeTxs = append(removeTxs, tx) // remove it , its already in chain
 			continue

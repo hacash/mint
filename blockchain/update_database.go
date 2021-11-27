@@ -34,16 +34,15 @@ func UpdateDatabaseReturnBlockChain(ini *sys.Inicnf, olddatadir string, maxtarhe
 	defer func() {
 		bccnf.DatabaseVersionRebuildMode = false                  // 模式恢复
 		newblockchain.State().RecoverDatabaseVersionRebuildMode() // 模式恢复
+		// 外部决定是否关闭
+		if isclosenew {
+			newblockchain.Close()
+		}
 	}()
 
-	// 外部决定是否关闭
-	if isclosenew {
-		newblockchain.Close()
-	}
-
 	// 并行读取和写入
-	updateDataCh := make(chan []byte, 20)
-	updateBlockCh := make(chan interfaces.Block, 20)
+	updateDataCh := make(chan []byte, 50)
+	updateBlockCh := make(chan interfaces.Block, 50)
 	finishWait := sync.WaitGroup{}
 	finishWait.Add(3)
 
