@@ -1,11 +1,12 @@
-package blockchain
+package blockchainv3
 
 import (
 	"github.com/hacash/core/sys"
 )
 
 type BlockChainConfig struct {
-	cnffile          *sys.Inicnf
+	cnffile *sys.Inicnf
+
 	Datadir          string
 	RollbackToHeight uint64
 	// btc move

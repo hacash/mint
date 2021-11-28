@@ -132,7 +132,7 @@ func UpdateDatabaseReturnBlockChain(ini *sys.Inicnf, olddatadir string, maxtarhe
 
 // 检查升级数据库版本
 func CheckAndUpdateBlockchainDatabaseVersion(ini *sys.Inicnf) error {
-	curversion := sys.BlockChainStateDatabaseCurrentUseVersion
+	curversion, compatible := ini.GetDatabaseVersion()
 	_, has := ini.MustDataDirCheckVersion(curversion)
 	if has {
 		return nil // 当前版本已经存在，正常返回
@@ -141,7 +141,7 @@ func CheckAndUpdateBlockchainDatabaseVersion(ini *sys.Inicnf) error {
 	olddir := ""
 	oldversion := curversion - 1
 	for {
-		if oldversion < sys.BlockChainStateDatabaseLowestCompatibleVersion {
+		if oldversion < compatible {
 			// 已经低于最低可兼容版本了，表示区块出现了分叉，必须全部从网络重新同步
 			return nil
 		}

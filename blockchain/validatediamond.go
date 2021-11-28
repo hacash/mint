@@ -39,7 +39,10 @@ func (b *BlockChain) ValidateDiamondCreateAction(action interfaces.Action) error
 	if last.ContainBlockHash.Equal(act.PrevHash) != true {
 		return fmt.Errorf("Diamond prev block hash error.")
 	}
-	hashave := b.State().Diamond(act.Diamond)
+	hashave, e := b.State().Diamond(act.Diamond)
+	if e != nil {
+		return e
+	}
 	if hashave != nil {
 		return fmt.Errorf("Diamond <%s> already exist.", act.Diamond)
 	}
