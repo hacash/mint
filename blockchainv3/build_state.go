@@ -38,7 +38,7 @@ func (b *BlockChain) BuildImmatureBlockStates() (*chainstatev3.ChainState, error
 			return nil, e
 		}
 		// 搜寻插入的父级状态
-		baseState, e := s.SearchBaseStateByBlockHash(tarblk.GetPrevHash())
+		baseState, e := s.SearchBaseStateByBlockHashObj(tarblk.GetPrevHash())
 		if e != nil {
 			return nil, e
 		}

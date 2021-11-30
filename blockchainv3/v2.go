@@ -29,10 +29,6 @@ func (bc *BlockChain) StateImmutable() interfacev3.ChainStateImmutable {
 	return bc.stateImmutable
 }
 
-func (bc *BlockChain) State() interfacev2.ChainState {
-	return nil
-}
-
 func (b BlockChain) StateRead() interfaces.ChainStateOperationRead {
 	return b.stateCurrent
 }
@@ -146,7 +142,7 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfacev2.Transact
 		return nil, nil, 0, e1
 	}
 	// create
-	nextblock := blocks.NewEmptyBlock_v1(lastest)
+	nextblock := blocks.NewEmptyBlockVersion1(lastest)
 	if nextblock.GetHeight() < mint.AdjustTargetDifficultyNumberOfBlocks {
 		nextblock.Difficulty = fields.VarUint4(difficulty.LowestDifficultyCompact)
 	} else {

@@ -20,13 +20,15 @@ func (bc *BlockChain) DiscoverNewBlockToInsert(newblock interfacev3.Block, origi
 
 	/*
 	 */
+	blockOriginIsSync := origin == "sync" || origin == ""
+
 	oldImmutablePending := bc.stateImmutable.GetPending()
 
 	// 插入新的区块
 
 	// 判断是否可以插入
 	prevhash := newblock.GetPrevHash()
-	basestate, e := bc.stateImmutable.SearchBaseStateByBlockHash(prevhash)
+	basestate, e := bc.stateImmutable.SearchBaseStateByBlockHashObj(prevhash)
 	if e != nil {
 		return nil, nil, e
 	}
@@ -36,24 +38,24 @@ func (bc *BlockChain) DiscoverNewBlockToInsert(newblock interfacev3.Block, origi
 	}
 
 	// 尝试插入
+	//fmt.Printf("insert block - %d ... ", newblock.GetHeight())
 	newstate, e := bc.forkStateWithAppendBlock(basestate, newblock)
 	if e != nil {
 		return nil, nil, e
 	}
+	//fmt.Println("ok")
 
 	//判断是否需要移动成熟区块
 	var isMoveComfirm bool = false
-	var doComfirmState interfacev3.ChainState = bc.stateImmutable
+	var doComfirmState = bc.stateImmutable
 	if newblock.GetHeight()-oldImmutablePending.GetPendingBlockHeight() > ImmatureBlockMaxLength {
 		// 移动确认
-		var comfirmState interfacev3.ChainState = newstate
+		var comfirmState = newstate
 		for i := 0; i < ImmatureBlockMaxLength; i++ {
-			comfirmState = newstate.GetParent()
+			comfirmState = comfirmState.GetParentObj()
 		}
-		if comfirmState != nil {
-			doComfirmState = comfirmState // 前移确认
-			isMoveComfirm = true
-		}
+		doComfirmState = comfirmState // 前移确认
+		isMoveComfirm = true
 	}
 
 	// 插入成功，更新状态表
@@ -61,7 +63,7 @@ func (bc *BlockChain) DiscoverNewBlockToInsert(newblock interfacev3.Block, origi
 	if e != nil {
 		return nil, nil, e
 	}
-	doComfirmStateImmutable := doComfirmState.(interfacev3.ChainStateImmutable)
+	doComfirmStateImmutable := doComfirmState
 	// 更新成熟的区块头以及不成熟的区块哈希表
 	immatureBlockHashs, e := doComfirmStateImmutable.SeekImmatureBlockHashs()
 	if e != nil {
@@ -71,18 +73,42 @@ func (bc *BlockChain) DiscoverNewBlockToInsert(newblock interfacev3.Block, origi
 	last.SetImmutableBlockHeadMeta(newImmutablePending.GetPendingBlockHead())
 	last.SetImmatureBlockHashList(immatureBlockHashs)
 
-	// 保存进磁盘
+	// 区块保存进磁盘
+	e = doComfirmState.BlockStore().SaveBlock(newblock)
+	if e != nil {
+		return nil, nil, e
+	}
+
+	diamondCreate := newstate.GetPending().GetWaitingSubmitDiamond()
+
+	curPdptr := bc.stateCurrent.GetPending()
+	isChangeCurrentState := newblock.GetHeight() > curPdptr.GetPendingBlockHeight()
+	if isChangeCurrentState {
+		if diamondCreate != nil {
+			diamondCreate.ContainBlockHash = newblock.Hash()
+			last.SetLastestDiamond(diamondCreate) // 新确认钻石
+		}
+		last.SetLatestBlockHash(newblock.Hash())
+	}
+
+	// 设置状态
+	e = doComfirmState.LatestStatusSet(last)
+	if e != nil {
+		return nil, nil, e
+	}
+
+	// 状态保存进磁盘
 	if isMoveComfirm {
-		_, e := doComfirmState.ImmutableWriteToDisk()
+		newComfirmImmutableState, e := doComfirmState.ImmutableWriteToDiskObj()
 		if e != nil {
 			return nil, nil, e // 写入磁盘出错
 		}
+		bc.stateImmutable = newComfirmImmutableState
 	}
 
 	// 判断是否切换 current 状态
-	var newCurrentState = bc.stateCurrent
-	curPdptr := bc.stateCurrent.GetPending()
-	if newblock.GetHeight() > curPdptr.GetPendingBlockHeight() {
+	var newCurrentStateForReturn = bc.stateCurrent
+	if isChangeCurrentState {
 		// 更新区块指针
 		var upPtrState = newstate
 		for i := 0; i < ImmatureBlockMaxLength; i++ {
@@ -90,32 +116,30 @@ func (bc *BlockChain) DiscoverNewBlockToInsert(newblock interfacev3.Block, origi
 				break
 			}
 			pd := upPtrState.GetPending()
+			//fmt.Println("UpdateSetBlockHashReferToHeight: ", pd.GetPendingBlockHeight(), pd.GetPendingBlockHash().ToHex())
 			e := newstate.BlockStore().UpdateSetBlockHashReferToHeight(
 				pd.GetPendingBlockHeight(), pd.GetPendingBlockHash())
 			if e != nil {
 				return nil, nil, e
 			}
-			upPtrState = upPtrState.GetParent()
+			upPtrState = upPtrState.GetParentObj()
 		}
 		// 更新最新状态指针
-		newCurrentState = newstate
+		newCurrentStateForReturn = newstate
 		bc.stateCurrent = newstate
 
-		// send feed
-		diamondCreate := newCurrentState.GetPending().GetWaitingSubmitDiamond()
-		if diamondCreate != nil {
-			// fmt.Println("diamondCreate bc.diamondCreateFeed.Send(diamondCreate), ", diamondCreate, diamondCreate.Diamond, diamondCreate.Number)
-			bc.diamondCreateFeed.Send(diamondCreate)
-		}
-
-		orimark := newblock.OriginMark()
-		if orimark != "" && orimark != "sync" {
+		// feed
+		if false == blockOriginIsSync {
+			// send feed
+			if diamondCreate != nil {
+				// 新确认了钻石
+				bc.diamondCreateFeed.Send(diamondCreate)
+			}
 			// 发送新区快到达通知
 			bc.validatedBlockInsertFeed.Send(newblock.(interfacev2.Block))
 		}
-
 	}
 
 	// 成功返回
-	return doComfirmState, newCurrentState, nil
+	return doComfirmState, newCurrentStateForReturn, nil
 }

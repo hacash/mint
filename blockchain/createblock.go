@@ -16,7 +16,7 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfacev2.Transact
 		return nil, nil, 0, e1
 	}
 	// create
-	nextblock := blocks.NewEmptyBlock_v1(lastest)
+	nextblock := blocks.NewEmptyBlockVersion1(lastest)
 	if nextblock.GetHeight() < mint.AdjustTargetDifficultyNumberOfBlocks {
 		nextblock.Difficulty = fields.VarUint4(difficulty.LowestDifficultyCompact)
 	} else {

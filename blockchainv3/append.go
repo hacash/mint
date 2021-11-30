@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"github.com/hacash/chain/chainstatev3"
 	"github.com/hacash/core/blocks"
 	"github.com/hacash/core/fields"
 	"github.com/hacash/core/interfacev3"
@@ -20,7 +21,7 @@ const (
 )
 
 // 新建状态去插入区块
-func (bc *BlockChain) forkStateWithAppendBlock(baseState interfacev3.ChainState, newblock interfacev3.Block) (interfacev3.ChainState, error) {
+func (bc *BlockChain) forkStateWithAppendBlock(baseState *chainstatev3.ChainState, newblock interfacev3.Block) (*chainstatev3.ChainState, error) {
 	// 检查区块高度和 prev 哈希等等
 	prevPending := baseState.GetPending()
 	prevblock := prevPending.GetPendingBlockHead()
@@ -139,7 +140,7 @@ func (bc *BlockChain) forkStateWithAppendBlock(baseState interfacev3.ChainState,
 	}
 	// 执行验证区块的每一笔交易
 	// fork state
-	newBlockChainState, e := baseState.ForkNextBlock(newblock.GetHeight(), newblock.Hash(), newblock)
+	newBlockChainState, e := baseState.ForkNextBlockObj(newblock.GetHeight(), newblock.Hash(), newblock)
 	if e != nil {
 		return nil, e
 	}

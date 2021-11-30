@@ -45,15 +45,17 @@ func NewBlockChain(cnf *BlockChainConfig) (*BlockChain, error) {
 	}
 
 	// 区块储存
-	immutable.SetBlockStore(blockstore)
+	immutable.SetBlockStoreObj(blockstore)
 
 	ins := &BlockChain{
-		config:                   cnf,
-		stateImmutable:           immutable,
-		blockstore:               blockstore,
-		validatedBlockInsertFeed: &event.Feed{},
-		diamondCreateFeed:        &event.Feed{},
-		insertLock:               &sync.RWMutex{},
+		config:                      cnf,
+		stateImmutable:              immutable,
+		blockstore:                  blockstore,
+		validatedBlockInsertFeed:    &event.Feed{},
+		diamondCreateFeed:           &event.Feed{},
+		prev288BlockTimestamp:       make(map[uint64]uint64),
+		prev288BlockTimestampLocker: &sync.Mutex{},
+		insertLock:                  &sync.RWMutex{},
 	}
 
 	// 重建不成熟的区块状态，返回最新区块值
