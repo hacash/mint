@@ -1,13 +1,13 @@
 package blockchain
 
 import (
-	"github.com/hacash/core/interfaces"
+	"github.com/hacash/core/interfacev2"
 	"github.com/hacash/mint"
 	"github.com/hacash/mint/difficulty"
 	"math/big"
 )
 
-func (bc *BlockChain) CalculateNextDiffculty(lastestBlock interfaces.Block) ([]byte, *big.Int, uint32, error) {
+func (bc *BlockChain) CalculateNextDiffculty(lastestBlock interfacev2.Block) ([]byte, *big.Int, uint32, error) {
 
 	newBlockHeight := lastestBlock.GetHeight() + 1
 

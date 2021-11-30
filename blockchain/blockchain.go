@@ -5,6 +5,7 @@ import (
 	"github.com/hacash/chain/blockstorev2"
 	"github.com/hacash/chain/chainstatev2"
 	"github.com/hacash/core/interfaces"
+	"github.com/hacash/core/interfacev2"
 	"github.com/hacash/mint/event"
 	"os"
 	"sync"
@@ -112,8 +113,15 @@ func (bc *BlockChain) ifDoRollback() {
 }
 
 // interface api
-func (bc *BlockChain) State() interfaces.ChainState {
+func (bc *BlockChain) State() interfacev2.ChainState {
 	bc.insertLock.RLock()
 	defer bc.insertLock.RUnlock()
+	return bc.chainstate
+}
+
+func (bc *BlockChain) StateRead() interfaces.ChainStateOperationRead {
+	bc.insertLock.RLock()
+	defer bc.insertLock.RUnlock()
+
 	return bc.chainstate
 }

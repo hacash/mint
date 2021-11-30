@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/hacash/core/blocks"
 	"github.com/hacash/core/fields"
-	"github.com/hacash/core/interfaces"
+	"github.com/hacash/core/interfacev2"
 	"github.com/hacash/core/stores"
 	"github.com/hacash/core/transactions"
 	"github.com/hacash/mint"
@@ -20,7 +20,7 @@ const (
 )
 
 // interface api
-func (bc *BlockChain) InsertBlock(newblock interfaces.Block, origin string) error {
+func (bc *BlockChain) InsertBlock(newblock interfacev2.Block, origin string) error {
 	if origin != "" {
 		newblock.SetOriginMark(origin)
 	}
@@ -28,7 +28,7 @@ func (bc *BlockChain) InsertBlock(newblock interfaces.Block, origin string) erro
 }
 
 // append block
-func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock interfaces.Block) error {
+func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock interfacev2.Block) error {
 	bc.insertLock.Lock()
 	defer bc.insertLock.Unlock()
 	// insert
@@ -179,7 +179,7 @@ func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock int
 	orimark := newblock.OriginMark()
 	if orimark != "" && orimark != "sync" {
 		// 发送新区快通知
-		bc.validatedBlockInsertFeed.Send(interfaces.Block(newblock))
+		bc.validatedBlockInsertFeed.Send(interfacev2.Block(newblock))
 	}
 
 	// return
@@ -187,7 +187,7 @@ func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock int
 }
 
 // 不安全的升级数据库
-func (bc *BlockChain) insertBlockToChainStateAndStoreUnsafe(newblock interfaces.Block) error {
+func (bc *BlockChain) insertBlockToChainStateAndStoreUnsafe(newblock interfacev2.Block) error {
 	// 状态
 	newBlockChainState, e7 := bc.chainstate.NewSubBranchTemporaryChainState()
 	if e7 != nil {
@@ -218,7 +218,7 @@ func (bc *BlockChain) insertBlockToChainStateAndStoreUnsafe(newblock interfaces.
 }
 
 // first debug amount
-func setupDebugChainState(chainstate interfaces.ChainStateOperation) {
+func setupDebugChainState(chainstate interfacev2.ChainStateOperation) {
 
 	addr1, _ := fields.CheckReadableAddress("12vi7DEZjh6KrK5PVmmqSgvuJPCsZMmpfi")
 	addr2, _ := fields.CheckReadableAddress("1LsQLqkd8FQDh3R7ZhxC5fndNf92WfhM19")

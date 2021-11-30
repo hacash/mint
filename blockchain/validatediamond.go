@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"github.com/hacash/core/actions"
 	"github.com/hacash/core/genesis"
-	"github.com/hacash/core/interfaces"
+	"github.com/hacash/core/interfacev2"
 	"github.com/hacash/core/stores"
 	"github.com/hacash/core/sys"
 	"github.com/hacash/x16rs"
 	"strings"
 )
 
-func (b *BlockChain) ValidateDiamondCreateAction(action interfaces.Action) error {
+func (b *BlockChain) ValidateDiamondCreateAction(action interfacev2.Action) error {
 	act, ok := action.(*actions.Action_4_DiamondCreate)
 	if !ok {
 		return fmt.Errorf("its not Action_4_DiamondCreate Action.")
@@ -22,7 +22,7 @@ func (b *BlockChain) ValidateDiamondCreateAction(action interfaces.Action) error
 		return nil // 开发者模式不检查返回成功
 	}
 
-	last, err := b.State().ReadLastestDiamond()
+	last, err := b.StateRead().ReadLastestDiamond()
 	if err != nil {
 		return err
 	}
@@ -39,7 +39,7 @@ func (b *BlockChain) ValidateDiamondCreateAction(action interfaces.Action) error
 	if last.ContainBlockHash.Equal(act.PrevHash) != true {
 		return fmt.Errorf("Diamond prev block hash error.")
 	}
-	hashave, e := b.State().Diamond(act.Diamond)
+	hashave, e := b.StateRead().Diamond(act.Diamond)
 	if e != nil {
 		return e
 	}

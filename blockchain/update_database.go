@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/hacash/chain/blockstorev2"
 	"github.com/hacash/core/blocks"
-	"github.com/hacash/core/interfaces"
+	"github.com/hacash/core/interfacev2"
 	"github.com/hacash/core/sys"
 	"sync"
 )
@@ -42,7 +42,7 @@ func UpdateDatabaseReturnBlockChain(ini *sys.Inicnf, olddatadir string, maxtarhe
 
 	// 并行读取和写入
 	updateDataCh := make(chan []byte, 50)
-	updateBlockCh := make(chan interfaces.Block, 50)
+	updateBlockCh := make(chan interfacev2.Block, 50)
 	finishWait := sync.WaitGroup{}
 	finishWait.Add(3)
 
@@ -52,9 +52,9 @@ func UpdateDatabaseReturnBlockChain(ini *sys.Inicnf, olddatadir string, maxtarhe
 		for {
 			readblockhei++
 			//fmt.Println("1")
-			_, body, e := oldblockDB.ReadBlockBytesByHeight(readblockhei, 0)
+			_, body, e := oldblockDB.ReadBlockBytesLengthByHeight(readblockhei, 0)
 			if e != nil {
-				fmt.Println("Check And Update Blockchain Database Version, ReadBlockBytesByHeight Error:", e.Error())
+				fmt.Println("Check And Update Blockchain Database Version, ReadBlockBytesLengthByHeight Error:", e.Error())
 				break // 发生错误，返回
 			}
 			if len(body) == 0 {

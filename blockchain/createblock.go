@@ -3,13 +3,13 @@ package blockchain
 import (
 	"github.com/hacash/core/blocks"
 	"github.com/hacash/core/fields"
-	"github.com/hacash/core/interfaces"
+	"github.com/hacash/core/interfacev2"
 	"github.com/hacash/mint"
 	"github.com/hacash/mint/coinbase"
 	"github.com/hacash/mint/difficulty"
 )
 
-func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfaces.Transaction) (interfaces.Block, []interfaces.Transaction, uint32, error) {
+func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfacev2.Transaction) (interfacev2.Block, []interfacev2.Transaction, uint32, error) {
 
 	lastest, e1 := bc.chainstate.ReadLastestBlockHeadAndMeta()
 	if e1 != nil {
@@ -38,7 +38,7 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfaces.Transacti
 	blockTempState.SetPendingBlockHeight(nextblock.GetHeight())
 	defer blockTempState.DestoryTemporary()
 	// append tx
-	removeTxs := make([]interfaces.Transaction, 0)
+	removeTxs := make([]interfacev2.Transaction, 0)
 	totaltxs := uint32(0)
 	totaltxssize := uint32(0)
 

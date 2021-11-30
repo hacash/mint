@@ -71,7 +71,7 @@ func (bc *BlockChain) RollbackToBlockHeightOld(targetblockheight uint64) (uint64
 	var rollbackBlock interfaces.Block = nil
 	for i := lastest.GetHeight(); i >= 1; i-- {
 		// read block
-		_, blkdatas, e2 := blockstore.ReadBlockBytesByHeight(i, 0)
+		_, blkdatas, e2 := blockstore.ReadBlockBytesLengthByHeight(i, 0)
 		if e2 != nil {
 			return 0, e2
 		}
