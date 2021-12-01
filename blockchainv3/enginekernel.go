@@ -18,21 +18,23 @@ const (
 ////////////////////////////////////////////////
 
 type ChainKernelConfig struct {
-	cnffile *sys.Inicnf
-
-	Datadir string
+	cnffile          *sys.Inicnf
+	RollbackToHeight uint64
+	Datadir          string
 }
 
 func NewEmptyChainKernelConfig() *ChainKernelConfig {
-	cnf := &ChainKernelConfig{}
+	cnf := &ChainKernelConfig{
+		RollbackToHeight: 0,
+	}
 	return cnf
 }
 
 func NewChainKernelConfig(cnffile *sys.Inicnf) *ChainKernelConfig {
 	cnf := NewEmptyChainKernelConfig()
 	cnf.cnffile = cnffile
-	//section := cnffile.Section("")
-	//cnf.RollbackToHeight = section.Key("RollbackToHeight").MustUint64(0)
+	section := cnffile.Section("")
+	cnf.RollbackToHeight = section.Key("RollbackToHeight").MustUint64(0)
 	cnf.Datadir = cnffile.MustDataDirWithVersion()
 	return cnf
 
@@ -123,6 +125,20 @@ func (b *ChainKernel) ChainStateIinitializeCall(stateinit func(interfaces.ChainS
  */
 func (bc *ChainKernel) Start() error {
 	// do nothing
+	return nil
+}
+
+func (bc *ChainKernel) Close() error {
+	bc.insertLock.Lock()
+	defer bc.insertLock.Unlock()
+	// 关闭
+	bc.stateImmutable.Close()
+	bc.blockstore.Close()
+	bc.stateCurrent.Destory()
+	bc.stateImmutable.Destory()
+	bc.stateCurrent = nil
+	bc.stateImmutable = nil
+	bc.blockstore = nil
 	return nil
 }
 

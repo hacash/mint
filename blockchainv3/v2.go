@@ -208,7 +208,3 @@ func (bc *BlockChain) SubscribeValidatedBlockOnInsert(blockCh chan interfaces.Bl
 func (bc *BlockChain) SubscribeDiamondOnCreate(diamondCh chan *stores.DiamondSmelt) {
 	bc.chainEngine.SubscribeDiamondOnCreate(diamondCh)
 }
-
-func (bc *BlockChain) RollbackToBlockHeight(uint64) (uint64, error) {
-	return 0, nil
-}

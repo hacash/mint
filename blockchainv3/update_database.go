@@ -1,21 +1,21 @@
-package blockchain
+package blockchainv3
 
 import (
 	"fmt"
-	"github.com/hacash/chain/blockstorev2"
+	"github.com/hacash/chain/blockstorev3"
 	"github.com/hacash/core/blocks"
-	"github.com/hacash/core/interfacev2"
+	"github.com/hacash/core/interfaces"
 	"github.com/hacash/core/sys"
 	"sync"
 )
 
-func UpdateDatabaseReturnBlockChain(ini *sys.Inicnf, olddatadir string, maxtarhei uint64, isclosenew bool) (*BlockChain, error) {
+func updateDatabaseReturnBlockChain(ini *sys.Inicnf, olddatadir string, maxtarhei uint64, isclosenew bool) (*ChainKernel, error) {
 
 	// 开始升级
 	oldblockdatadir := olddatadir + "/blockstore"
-	cnf1 := blockstorev2.NewEmptyBlockStoreConfig()
+	cnf1 := blockstorev3.NewEmptyBlockStoreConfig()
 	cnf1.Datadir = oldblockdatadir
-	oldblockDB, e0 := blockstorev2.NewBlockStoreForUpdateDatabaseVersion(cnf1)
+	oldblockDB, e0 := blockstorev3.NewBlockStore(cnf1)
 	if e0 != nil {
 		// 发生错误，返回
 		return nil, fmt.Errorf("Check And Update Blockchain Database Version Error: %s", e0.Error())
@@ -23,26 +23,28 @@ func UpdateDatabaseReturnBlockChain(ini *sys.Inicnf, olddatadir string, maxtarhe
 	defer oldblockDB.Close()
 
 	// 建立新状态
-	bccnf := NewBlockChainConfig(ini)
-	bccnf.DatabaseVersionRebuildMode = true // 数据库重建模式
-	newblockchain, e1 := NewBlockChain(bccnf)
+	bccnf := NewChainKernelConfig(ini)
+	chainCore, e1 := NewChainKernel(bccnf)
 	if e1 != nil {
 		return nil, fmt.Errorf("Check And Update Blockchain Database Version, NewBlockChain Error: %s", e1.Error())
 		// 发生错误，返回
 	}
+	// 初始化
+	chainCore.ChainStateIinitializeCall(setupHacashChainState)
+	// 设定为数据库升级模式
+	chainCore.CurrentState().SetDatabaseVersionRebuildMode(true)
 	// 模式恢复
 	defer func() {
-		bccnf.DatabaseVersionRebuildMode = false                   // 模式恢复
-		newblockchain.State().SetDatabaseVersionRebuildMode(false) // 模式恢复
+		chainCore.CurrentState().SetDatabaseVersionRebuildMode(false) // 模式恢复
 		// 外部决定是否关闭
 		if isclosenew {
-			newblockchain.Close()
+			chainCore.Close()
 		}
 	}()
 
 	// 并行读取和写入
 	updateDataCh := make(chan []byte, 50)
-	updateBlockCh := make(chan interfacev2.Block, 50)
+	updateBlockCh := make(chan interfaces.Block, 50)
 	finishWait := sync.WaitGroup{}
 	finishWait.Add(3)
 
@@ -52,7 +54,7 @@ func UpdateDatabaseReturnBlockChain(ini *sys.Inicnf, olddatadir string, maxtarhe
 		for {
 			readblockhei++
 			//fmt.Println("1")
-			_, body, e := oldblockDB.ReadBlockBytesLengthByHeight(readblockhei, 0)
+			_, body, e := oldblockDB.ReadBlockBytesByHeight(readblockhei)
 			if e != nil {
 				fmt.Println("Check And Update Blockchain Database Version, ReadBlockBytesLengthByHeight Error:", e.Error())
 				break // 发生错误，返回
@@ -87,7 +89,7 @@ func UpdateDatabaseReturnBlockChain(ini *sys.Inicnf, olddatadir string, maxtarhe
 				break // 发生错误，返回
 			}
 			// 写入数据
-			updateBlockCh <- blk.(interfacev2.Block)
+			updateBlockCh <- blk
 		}
 		// 读取完毕
 		updateBlockCh <- nil
@@ -106,7 +108,7 @@ func UpdateDatabaseReturnBlockChain(ini *sys.Inicnf, olddatadir string, maxtarhe
 
 			//fmt.Println("4")
 			// 插入区块（升级模式）
-			e3 := newblockchain.insertBlockToChainStateAndStoreUnsafe(blk)
+			e3 := chainCore.InsertBlock(blk, "")
 			if e3 != nil {
 				fmt.Println("Check And Update Blockchain Database Version, InsertBlock Error:", e3.Error())
 				break // 发生错误，返回
@@ -127,7 +129,7 @@ func UpdateDatabaseReturnBlockChain(ini *sys.Inicnf, olddatadir string, maxtarhe
 
 	finishWait.Wait()
 
-	return newblockchain, nil
+	return chainCore, nil
 }
 
 // 检查升级数据库版本
@@ -155,7 +157,7 @@ func CheckAndUpdateBlockchainDatabaseVersion(ini *sys.Inicnf) error {
 	// 依次读取区块，并插入新状态
 	fmt.Printf("[Database] Upgrade blockchain database version v%d to v%d, block data is NOT resynchronized, Please wait and do not close the program...\n[Database] Checking block height:          0", oldversion, curversion)
 
-	_, e := UpdateDatabaseReturnBlockChain(ini, olddir, 0, true)
+	_, e := updateDatabaseReturnBlockChain(ini, olddir, 0, true)
 	if e != nil {
 		err := fmt.Errorf("Check And Update Blockchain Database Version, NewBlockChain Error: %s\n", e.Error())
 		fmt.Println(err.Error())

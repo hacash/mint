@@ -12,7 +12,7 @@ import (
 type BlockChain struct {
 	config *BlockChainConfig
 
-	chainEngine interfaces.ChainEngineKernel
+	chainEngine interfaces.ChainEngine
 
 	mux *sync.RWMutex
 }
@@ -37,14 +37,14 @@ func NewBlockChain(cnf *BlockChainConfig) (*BlockChain, error) {
 	return ins, nil
 }
 
-func (bc *BlockChain) GetChainEngineKernel() interfaces.ChainEngineKernel {
+func (bc *BlockChain) GetChainEngineKernel() interfaces.ChainEngine {
 	bc.mux.RLock()
 	defer bc.mux.RUnlock()
 
 	return bc.chainEngine
 }
 
-func (bc *BlockChain) SetChainEngineKernel(engine interfaces.ChainEngineKernel) {
+func (bc *BlockChain) SetChainEngineKernel(engine interfaces.ChainEngine) {
 	bc.mux.Lock()
 	defer bc.mux.Unlock()
 

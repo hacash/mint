@@ -77,12 +77,13 @@ func (bc *BlockChain) ReplaceChainstate(new *BlockChain) {
 	bc.chainstate = new.chainstate
 }
 
-func (bc *BlockChain) Close() {
+func (bc *BlockChain) Close() error {
 	bc.insertLock.Lock()
 	defer bc.insertLock.Unlock()
 	if bc.chainstate != nil {
 		bc.chainstate.Close()
 	}
+	return nil
 }
 
 func (bc *BlockChain) Start() error {
@@ -138,11 +139,11 @@ func (b *BlockChain) ChainStateIinitializeCall(func(interfaces.ChainStateOperati
 
 }
 
-func (bc *BlockChain) GetChainEngineKernel() interfaces.ChainEngineKernel {
+func (bc *BlockChain) GetChainEngineKernel() interfaces.ChainEngine {
 	return bc
 }
 
-func (bc *BlockChain) SetChainEngineKernel(engine interfaces.ChainEngineKernel) {
+func (bc *BlockChain) SetChainEngineKernel(engine interfaces.ChainEngine) {
 }
 
 // 最新的区块（已确认的，和未成熟的）
