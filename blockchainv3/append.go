@@ -7,8 +7,7 @@ import (
 	"github.com/hacash/chain/chainstatev3"
 	"github.com/hacash/core/blocks"
 	"github.com/hacash/core/fields"
-	"github.com/hacash/core/interfacev3"
-	"github.com/hacash/core/stores"
+	"github.com/hacash/core/interfaces"
 	"github.com/hacash/core/transactions"
 	"github.com/hacash/mint"
 	"github.com/hacash/mint/coinbase"
@@ -16,12 +15,8 @@ import (
 	"time"
 )
 
-const (
-	block_time_format_layout = "01/02 15:04:05"
-)
-
 // 新建状态去插入区块
-func (bc *BlockChain) forkStateWithAppendBlock(baseState *chainstatev3.ChainState, newblock interfacev3.Block) (*chainstatev3.ChainState, error) {
+func (bc *ChainKernel) forkStateWithAppendBlock(baseState *chainstatev3.ChainState, newblock interfaces.Block) (*chainstatev3.ChainState, error) {
 	// 检查区块高度和 prev 哈希等等
 	prevPending := baseState.GetPending()
 	prevblock := prevPending.GetPendingBlockHead()
@@ -102,7 +97,7 @@ func (bc *BlockChain) forkStateWithAppendBlock(baseState *chainstatev3.ChainStat
 		return nil, fmt.Errorf(errmsgprifix+"Block coinbase reward need %s got %s.", shouldrewards, newblockCoinbaseReward.ToFinString())
 	}
 	// check hash difficulty
-	targetDiffHash, _, _, e5 := bc.CalculateNextDiffculty(prevblock)
+	targetDiffHash, _, _, e5 := difficulty.CalculateNextDiffculty(baseState.BlockStoreRead(), prevblock)
 	if e5 != nil {
 		return nil, e5
 	}
@@ -148,8 +143,8 @@ func (bc *BlockChain) forkStateWithAppendBlock(baseState *chainstatev3.ChainStat
 	//newBlockChainState.SetPendingBlockHash(newBlockHash)     // set pending
 	//defer newBlockChainState.Destory()
 	// setup debug
-	if newblock.GetHeight() == 1 {
-		setupDebugChainState(newBlockChainState) // first state setup
+	if newblock.GetHeight() == 1 && bc.initcall != nil {
+		bc.initcall(newBlockChainState)
 	}
 	// 写入区块状态
 	err2 := newblock.WriteInChainState(newBlockChainState)
@@ -190,16 +185,4 @@ func (bc *BlockChain) forkStateWithAppendBlock(baseState *chainstatev3.ChainStat
 
 	// return ok
 	return newBlockChainState, nil
-}
-
-// first debug amount
-func setupDebugChainState(chainstate interfacev3.ChainStateOperation) {
-	addr1, _ := fields.CheckReadableAddress("12vi7DEZjh6KrK5PVmmqSgvuJPCsZMmpfi")
-	addr2, _ := fields.CheckReadableAddress("1LsQLqkd8FQDh3R7ZhxC5fndNf92WfhM19")
-	addr3, _ := fields.CheckReadableAddress("1NUgKsTgM6vQ5nxFHGz1C4METaYTPgiihh")
-	amt1, _ := fields.NewAmountFromFinString("ㄜ1:244")
-	amt2, _ := fields.NewAmountFromFinString("ㄜ12:244")
-	chainstate.BalanceSet(*addr1, stores.NewBalanceWithAmount(amt2))
-	chainstate.BalanceSet(*addr2, stores.NewBalanceWithAmount(amt1))
-	chainstate.BalanceSet(*addr3, stores.NewBalanceWithAmount(amt1))
 }

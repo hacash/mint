@@ -7,8 +7,6 @@ import (
 	"github.com/hacash/core/fields"
 	"github.com/hacash/core/genesis"
 	"github.com/hacash/core/interfaces"
-	"github.com/hacash/core/interfacev2"
-	"github.com/hacash/core/interfacev3"
 	"github.com/hacash/core/stores"
 	"github.com/hacash/core/sys"
 	"github.com/hacash/mint"
@@ -19,21 +17,11 @@ import (
 	"time"
 )
 
-func (bc *BlockChain) InsertBlock(newblk interfacev2.Block, origin string) error {
-	blkv3 := newblk.(interfacev3.Block)
-	_, _, e := bc.DiscoverNewBlockToInsert(blkv3, origin)
-	return e
-}
-
-func (bc *BlockChain) StateImmutable() interfacev3.ChainStateImmutable {
-	return bc.stateImmutable
-}
-
 func (b BlockChain) StateRead() interfaces.ChainStateOperationRead {
-	return b.stateCurrent
+	return b.chainEngine.StateRead()
 }
 
-func (bc *BlockChain) ValidateTransactionForTxPool(newtx interfacev2.Transaction) error {
+func (bc *BlockChain) ValidateTransactionForTxPool(newtx interfaces.Transaction) error {
 	newtxhash := newtx.Hash()
 	txhxhex := newtxhash.ToHex()
 	exist, e0 := bc.StateRead().CheckTxHash(newtxhash)
@@ -58,20 +46,20 @@ func (bc *BlockChain) ValidateTransactionForTxPool(newtx interfacev2.Transaction
 		return fmt.Errorf("tx %s verify signature error", txhxhex)
 	}
 	// try run
-	lastestBlock, e1 := bc.StateRead().ReadLastestBlockHeadMetaForRead()
+	lastestBlock, _, e1 := bc.GetChainEngineKernel().LatestBlock()
 	if e1 != nil {
 		return e1
 	}
 	// create temp state
-	newTxState, e2 := bc.stateCurrent.ForkNextBlock(lastestBlock.GetHeight()+1, nil, nil)
+	newTxState, e2 := bc.chainEngine.CurrentState().ForkNextBlock(lastestBlock.GetHeight()+1, nil, nil)
 	if e2 != nil {
 		return e2
 	}
-	newTxState.SetInMemTxPool(true) // 标记是矿池状态
-	defer newTxState.Destory()      // clean data
+	newTxState.SetInTxPool(true) // 标记是矿池状态
+	defer newTxState.Destory()   // clean data
 	// validate
 	//newTxState.SetPendingBlockHeight(lastestBlock.GetHeight() + 1)
-	runerr := newtx.(interfacev3.Transaction).WriteInChainState(newTxState)
+	runerr := newtx.(interfaces.Transaction).WriteInChainState(newTxState)
 	if runerr != nil {
 		return runerr
 	}
@@ -81,7 +69,7 @@ func (bc *BlockChain) ValidateTransactionForTxPool(newtx interfacev2.Transaction
 	return nil
 }
 
-func (b *BlockChain) ValidateDiamondCreateAction(action interfacev2.Action) error {
+func (b *BlockChain) ValidateDiamondCreateAction(action interfaces.Action) error {
 
 	act, ok := action.(*actions.Action_4_DiamondCreate)
 	if !ok {
@@ -135,9 +123,9 @@ func (b *BlockChain) ValidateDiamondCreateAction(action interfacev2.Action) erro
 	return nil
 }
 
-func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfacev2.Transaction) (interfacev2.Block, []interfacev2.Transaction, uint32, error) {
+func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfaces.Transaction) (interfaces.Block, []interfaces.Transaction, uint32, error) {
 
-	lastest, e1 := bc.StateRead().ReadLastestBlockHeadMetaForRead()
+	lastest, _, e1 := bc.GetChainEngineKernel().LatestBlock()
 	if e1 != nil {
 		return nil, nil, 0, e1
 	}
@@ -147,7 +135,7 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfacev2.Transact
 		nextblock.Difficulty = fields.VarUint4(difficulty.LowestDifficultyCompact)
 	} else {
 		// change diffculty
-		_, _, bits, err := bc.CalculateNextDiffculty(lastest)
+		_, _, bits, err := difficulty.CalculateNextDiffculty(bc.StateRead().BlockStoreRead(), lastest)
 		//fmt.Println("CalculateNextDiffculty - - - - - ", lastest.GetHeight()+1, " - - - ", hex.EncodeToString(tarhx), hex.EncodeToString(difficulty.Uint32ToHash(lastest.GetHeight(), bits)))
 		if err != nil {
 			return nil, nil, 0, err
@@ -157,14 +145,14 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfacev2.Transact
 	// coinbase tx
 	nextblock.AddTransaction(coinbase.CreateCoinbaseTx(nextblock.GetHeight()))
 	// state run
-	blockTempState, e2 := bc.stateCurrent.ForkNextBlockObj(nextblock.GetHeight(), nil, nil)
+	blockTempState, e2 := bc.chainEngine.CurrentState().ForkNextBlock(nextblock.GetHeight(), nil, nil)
 	if e2 != nil {
 		return nil, nil, 0, e2
 	}
 	//blockTempState.SetPendingBlockHeight(nextblock.GetHeight())
 	defer blockTempState.Destory()
 	// append tx
-	removeTxs := make([]interfacev2.Transaction, 0)
+	removeTxs := make([]interfaces.Transaction, 0)
 	totaltxs := uint32(0)
 	totaltxssize := uint32(0)
 
@@ -178,11 +166,11 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfacev2.Transact
 		if totaltxs >= 2000 || totaltxssize >= mint.SingleBlockMaxSize {
 			break // overflow block max size or max num
 		}
-		txTempState, e1 := blockTempState.ForkSubChildObj()
+		txTempState, e1 := blockTempState.ForkSubChild()
 		if e1 != nil {
 			return nil, nil, 0, e1
 		}
-		err := tx.(interfacev3.Transaction).WriteInChainState(txTempState)
+		err := tx.(interfaces.Transaction).WriteInChainState(txTempState)
 		if err != nil {
 			//fmt.Println("********************  create block error  ***********************")
 			//fmt.Println(err)
@@ -190,12 +178,12 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfacev2.Transact
 			continue
 		}
 		// add
-		nextblock.AddTransaction(tx)
+		nextblock.AddTrs(tx)
 		// 统计
 		totaltxs += 1
 		totaltxssize += tx.Size()
 		// 合并状态
-		e2 := blockTempState.TraversalCopyByObj(txTempState)
+		e2 := blockTempState.TraversalCopy(txTempState)
 		if e2 != nil {
 			txTempState.Destory()
 			return nil, nil, 0, e2
@@ -213,12 +201,12 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfacev2.Transact
 	//return nil, nil, 0, nil
 }
 
-func (bc *BlockChain) SubscribeValidatedBlockOnInsert(blockCh chan interfacev2.Block) {
-	bc.validatedBlockInsertFeed.Subscribe(blockCh)
+func (bc *BlockChain) SubscribeValidatedBlockOnInsert(blockCh chan interfaces.Block) {
+	bc.chainEngine.SubscribeValidatedBlockOnInsert(blockCh)
 }
 
 func (bc *BlockChain) SubscribeDiamondOnCreate(diamondCh chan *stores.DiamondSmelt) {
-	bc.diamondCreateFeed.Subscribe(diamondCh)
+	bc.chainEngine.SubscribeDiamondOnCreate(diamondCh)
 }
 
 func (bc *BlockChain) RollbackToBlockHeight(uint64) (uint64, error) {

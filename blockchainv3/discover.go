@@ -2,19 +2,15 @@ package blockchainv3
 
 import (
 	"fmt"
+	"github.com/hacash/core/interfaces"
 	"github.com/hacash/core/interfacev2"
-	"github.com/hacash/core/interfacev3"
-)
-
-const (
-	ImmatureBlockMaxLength = 4 // 最多允许四个不成熟的区块
 )
 
 /**
  * 发现新区块并尝试插入区块链
  * 返回值：插入新区块的状态，当前使用的最新的状态（切换后的），错误
  */
-func (bc *BlockChain) DiscoverNewBlockToInsert(newblock interfacev3.Block, origin string) (interfacev3.ChainState, interfacev3.ChainState, error) {
+func (bc *ChainKernel) DiscoverNewBlockToInsert(newblock interfaces.Block, origin string) (interfaces.ChainState, interfaces.ChainState, error) {
 	bc.insertLock.Lock()
 	defer bc.insertLock.Unlock()
 
@@ -59,7 +55,7 @@ func (bc *BlockChain) DiscoverNewBlockToInsert(newblock interfacev3.Block, origi
 	}
 
 	// 插入成功，更新状态表
-	last, e := bc.stateImmutable.LatestStatusRead()
+	immutableStatus, e := bc.stateImmutable.ImmutableStatusRead()
 	if e != nil {
 		return nil, nil, e
 	}
@@ -70,8 +66,8 @@ func (bc *BlockChain) DiscoverNewBlockToInsert(newblock interfacev3.Block, origi
 		return nil, nil, e
 	}
 	newImmutablePending := doComfirmStateImmutable.GetPending()
-	last.SetImmutableBlockHeadMeta(newImmutablePending.GetPendingBlockHead())
-	last.SetImmatureBlockHashList(immatureBlockHashs)
+	immutableStatus.SetImmutableBlockHeadMeta(newImmutablePending.GetPendingBlockHead())
+	immutableStatus.SetImmatureBlockHashList(immatureBlockHashs)
 
 	// 区块保存进磁盘
 	e = doComfirmState.BlockStore().SaveBlock(newblock)
@@ -84,15 +80,11 @@ func (bc *BlockChain) DiscoverNewBlockToInsert(newblock interfacev3.Block, origi
 	curPdptr := bc.stateCurrent.GetPending()
 	isChangeCurrentState := newblock.GetHeight() > curPdptr.GetPendingBlockHeight()
 	if isChangeCurrentState {
-		if diamondCreate != nil {
-			diamondCreate.ContainBlockHash = newblock.Hash()
-			last.SetLastestDiamond(diamondCreate) // 新确认钻石
-		}
-		last.SetLatestBlockHash(newblock.Hash())
+		immutableStatus.SetLatestBlockHash(newblock.Hash())
 	}
 
-	// 设置状态
-	e = doComfirmState.LatestStatusSet(last)
+	// 保存状态
+	e = doComfirmState.ImmutableStatusSet(immutableStatus)
 	if e != nil {
 		return nil, nil, e
 	}
@@ -124,6 +116,7 @@ func (bc *BlockChain) DiscoverNewBlockToInsert(newblock interfacev3.Block, origi
 			}
 			upPtrState = upPtrState.GetParentObj()
 		}
+
 		// 更新最新状态指针
 		newCurrentStateForReturn = newstate
 		bc.stateCurrent = newstate

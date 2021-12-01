@@ -3,13 +3,14 @@ package blockchain
 import (
 	"github.com/hacash/core/blocks"
 	"github.com/hacash/core/fields"
+	"github.com/hacash/core/interfaces"
 	"github.com/hacash/core/interfacev2"
 	"github.com/hacash/mint"
 	"github.com/hacash/mint/coinbase"
 	"github.com/hacash/mint/difficulty"
 )
 
-func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfacev2.Transaction) (interfacev2.Block, []interfacev2.Transaction, uint32, error) {
+func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfaces.Transaction) (interfaces.Block, []interfaces.Transaction, uint32, error) {
 
 	lastest, e1 := bc.chainstate.ReadLastestBlockHeadAndMeta()
 	if e1 != nil {
@@ -38,7 +39,7 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfacev2.Transact
 	blockTempState.SetPendingBlockHeight(nextblock.GetHeight())
 	defer blockTempState.DestoryTemporary()
 	// append tx
-	removeTxs := make([]interfacev2.Transaction, 0)
+	removeTxs := make([]interfaces.Transaction, 0)
 	totaltxs := uint32(0)
 	totaltxssize := uint32(0)
 
@@ -56,7 +57,7 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfacev2.Transact
 		if e1 != nil {
 			return nil, nil, 0, e1
 		}
-		err := tx.WriteinChainState(txTempState)
+		err := tx.(interfacev2.Transaction).WriteinChainState(txTempState)
 		if err != nil {
 			//fmt.Println("********************  create block error  ***********************")
 			//fmt.Println(err)
@@ -64,7 +65,7 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfacev2.Transact
 			continue
 		}
 		// add
-		nextblock.AddTransaction(tx)
+		nextblock.AddTransaction(tx.(interfacev2.Transaction))
 		// 统计
 		totaltxs += 1
 		totaltxssize += tx.Size()

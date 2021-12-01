@@ -2,12 +2,13 @@ package blockchain
 
 import (
 	"fmt"
+	"github.com/hacash/core/interfaces"
 	"github.com/hacash/core/interfacev2"
 	"github.com/hacash/mint"
 	"time"
 )
 
-func (bc *BlockChain) ValidateTransactionForTxPool(newtx interfacev2.Transaction) error {
+func (bc *BlockChain) ValidateTransactionForTxPool(newtx interfaces.Transaction) error {
 	newtxhash := newtx.Hash()
 	txhxhex := newtxhash.ToHex()
 	exist, e0 := bc.chainstate.CheckTxHash(newtxhash)
@@ -41,11 +42,11 @@ func (bc *BlockChain) ValidateTransactionForTxPool(newtx interfacev2.Transaction
 	if e2 != nil {
 		return e2
 	}
-	newTxState.SetInMemTxPool(true)     // 标记是矿池状态
+	newTxState.SetInTxPool(true)        // 标记是矿池状态
 	defer newTxState.DestoryTemporary() // clean data
 	// validate
 	newTxState.SetPendingBlockHeight(lastestBlock.GetHeight() + 1)
-	runerr := newtx.WriteinChainState(newTxState)
+	runerr := newtx.(interfacev2.Transaction).WriteinChainState(newTxState)
 	if runerr != nil {
 		return runerr
 	}

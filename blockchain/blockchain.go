@@ -6,6 +6,7 @@ import (
 	"github.com/hacash/chain/chainstatev2"
 	"github.com/hacash/core/interfaces"
 	"github.com/hacash/core/interfacev2"
+	"github.com/hacash/core/stores"
 	"github.com/hacash/mint/event"
 	"os"
 	"sync"
@@ -124,4 +125,33 @@ func (bc *BlockChain) StateRead() interfaces.ChainStateOperationRead {
 	defer bc.insertLock.RUnlock()
 
 	return bc.chainstate
+}
+
+func (bc *BlockChain) CurrentState() interfaces.ChainState {
+	bc.insertLock.RLock()
+	defer bc.insertLock.RUnlock()
+
+	return nil
+}
+
+func (b *BlockChain) ChainStateIinitializeCall(func(interfaces.ChainStateOperation)) {
+
+}
+
+func (bc *BlockChain) GetChainEngineKernel() interfaces.ChainEngineKernel {
+	return bc
+}
+
+func (bc *BlockChain) SetChainEngineKernel(engine interfaces.ChainEngineKernel) {
+}
+
+// 最新的区块（已确认的，和未成熟的）
+func (bc *BlockChain) LatestBlock() (interfaces.BlockHeadMetaRead, interfaces.BlockHeadMetaRead, error) {
+	blk, e := bc.chainstate.ReadLastestBlockHeadMetaForRead()
+	return blk, blk, e
+}
+
+// 最新的区块钻石
+func (bc *BlockChain) LatestDiamond() (*stores.DiamondSmelt, error) {
+	return bc.chainstate.ReadLastestDiamond()
 }

@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"github.com/hacash/core/actions"
 	"github.com/hacash/core/genesis"
-	"github.com/hacash/core/interfacev2"
+	"github.com/hacash/core/interfaces"
 	"github.com/hacash/core/stores"
 	"github.com/hacash/core/sys"
 	"github.com/hacash/x16rs"
 	"strings"
 )
 
-func (b *BlockChain) ValidateDiamondCreateAction(action interfacev2.Action) error {
+func (b *BlockChain) ValidateDiamondCreateAction(action interfaces.Action) error {
 	act, ok := action.(*actions.Action_4_DiamondCreate)
 	if !ok {
 		return fmt.Errorf("its not Action_4_DiamondCreate Action.")

@@ -87,7 +87,7 @@ func UpdateDatabaseReturnBlockChain(ini *sys.Inicnf, olddatadir string, maxtarhe
 				break // 发生错误，返回
 			}
 			// 写入数据
-			updateBlockCh <- blk
+			updateBlockCh <- blk.(interfacev2.Block)
 		}
 		// 读取完毕
 		updateBlockCh <- nil

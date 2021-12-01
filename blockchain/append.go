@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/hacash/core/blocks"
 	"github.com/hacash/core/fields"
+	"github.com/hacash/core/interfaces"
 	"github.com/hacash/core/interfacev2"
 	"github.com/hacash/core/stores"
 	"github.com/hacash/core/transactions"
@@ -20,11 +21,11 @@ const (
 )
 
 // interface api
-func (bc *BlockChain) InsertBlock(newblock interfacev2.Block, origin string) error {
+func (bc *BlockChain) InsertBlock(newblock interfaces.Block, origin string) error {
 	if origin != "" {
 		newblock.SetOriginMark(origin)
 	}
-	return bc.tryValidateAppendNewBlockToChainStateAndStore(newblock)
+	return bc.tryValidateAppendNewBlockToChainStateAndStore(newblock.(interfacev2.Block))
 }
 
 // append block
@@ -71,7 +72,7 @@ func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock int
 			newblock.GetTransactionCount())
 	}
 	// check mkrl root
-	newblktxs := newblock.GetTransactions()
+	newblktxs := newblock.(interfaces.Block).GetTrsList()
 	newblockRealMkrlRoot := blocks.CalculateMrklRoot(newblktxs)
 	newblkmkrlroot := newblock.GetMrklRoot()
 	if bytes.Compare(newblockRealMkrlRoot, newblkmkrlroot) != 0 {

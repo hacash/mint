@@ -2,10 +2,9 @@ package blockchainv3
 
 import (
 	"fmt"
-	"github.com/hacash/chain/blockstorev3"
-	"github.com/hacash/chain/chainstatev3"
-	"github.com/hacash/core/interfacev3"
-	"github.com/hacash/mint/event"
+	"github.com/hacash/core/fields"
+	"github.com/hacash/core/interfaces"
+	"github.com/hacash/core/stores"
 	"sync"
 )
 
@@ -13,62 +12,43 @@ import (
 type BlockChain struct {
 	config *BlockChainConfig
 
-	//状态
-	stateImmutable *chainstatev3.ChainState
-	stateCurrent   *chainstatev3.ChainState
+	chainEngine interfaces.ChainEngineKernel
 
-	blockstore *blockstorev3.BlockStore
-
-	// data cache
-	prev288BlockTimestamp       map[uint64]uint64
-	prev288BlockTimestampLocker *sync.Mutex
-
-	// feed
-	validatedBlockInsertFeed *event.Feed
-	diamondCreateFeed        *event.Feed
-
-	insertLock *sync.RWMutex
+	mux *sync.RWMutex
 }
 
 func NewBlockChain(cnf *BlockChainConfig) (*BlockChain, error) {
 
-	stocnf := blockstorev3.NewBlockStoreConfig(cnf.cnffile)
-	blockstore, e := blockstorev3.NewBlockStore(stocnf)
+	engcnf := NewChainKernelConfig(cnf.cnffile)
+	engine, e := NewChainKernel(engcnf)
 	if e != nil {
 		return nil, e
 	}
 
-	scnf := chainstatev3.NewChainStateConfig(cnf.cnffile)
-	immutable, e := chainstatev3.NewChainStateImmutable(scnf)
-	if e != nil {
-		return nil, e
-	}
-
-	// 区块储存
-	immutable.SetBlockStoreObj(blockstore)
+	// 首次初始化状态
+	engine.ChainStateIinitializeCall(setupHacashChainState)
 
 	ins := &BlockChain{
-		config:                      cnf,
-		stateImmutable:              immutable,
-		blockstore:                  blockstore,
-		validatedBlockInsertFeed:    &event.Feed{},
-		diamondCreateFeed:           &event.Feed{},
-		prev288BlockTimestamp:       make(map[uint64]uint64),
-		prev288BlockTimestampLocker: &sync.Mutex{},
-		insertLock:                  &sync.RWMutex{},
-	}
-
-	// 重建不成熟的区块状态，返回最新区块值
-	ins.stateCurrent, e = ins.BuildImmatureBlockStates()
-	if e != nil {
-		return nil, e
+		config:      cnf,
+		chainEngine: engine,
+		mux:         &sync.RWMutex{},
 	}
 
 	return ins, nil
 }
 
-func (b BlockChain) BlockStore() interfacev3.BlockStore {
-	return b.blockstore
+func (bc *BlockChain) GetChainEngineKernel() interfaces.ChainEngineKernel {
+	bc.mux.RLock()
+	defer bc.mux.RUnlock()
+
+	return bc.chainEngine
+}
+
+func (bc *BlockChain) SetChainEngineKernel(engine interfaces.ChainEngineKernel) {
+	bc.mux.Lock()
+	defer bc.mux.Unlock()
+
+	bc.chainEngine = engine
 }
 
 func (bc *BlockChain) Start() error {
@@ -77,10 +57,27 @@ func (bc *BlockChain) Start() error {
 
 	//bc.ifDoRollback() // set config to do rollback
 
+	e := bc.chainEngine.Start()
+	if e != nil {
+		return e
+	}
+
 	// 循环等待下载比特币转移日志
-	go bc.blockstore.RunDownLoadBTCMoveLog()
+	go bc.chainEngine.CurrentState().BlockStore().RunDownLoadBTCMoveLog()
 
 	go bc.loop()
 
 	return nil
+}
+
+// first debug amount
+func setupHacashChainState(chainstate interfaces.ChainStateOperation) {
+	addr1, _ := fields.CheckReadableAddress("12vi7DEZjh6KrK5PVmmqSgvuJPCsZMmpfi")
+	addr2, _ := fields.CheckReadableAddress("1LsQLqkd8FQDh3R7ZhxC5fndNf92WfhM19")
+	addr3, _ := fields.CheckReadableAddress("1NUgKsTgM6vQ5nxFHGz1C4METaYTPgiihh")
+	amt1, _ := fields.NewAmountFromFinString("ㄜ1:244")
+	amt2, _ := fields.NewAmountFromFinString("ㄜ12:244")
+	chainstate.BalanceSet(*addr1, stores.NewBalanceWithAmount(amt2))
+	chainstate.BalanceSet(*addr2, stores.NewBalanceWithAmount(amt1))
+	chainstate.BalanceSet(*addr3, stores.NewBalanceWithAmount(amt1))
 }
