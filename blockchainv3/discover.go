@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/hacash/core/interfaces"
 	"github.com/hacash/core/interfacev2"
+	"runtime"
 )
 
 /**
@@ -13,6 +14,10 @@ import (
 func (bc *ChainKernel) DiscoverNewBlockToInsert(newblock interfaces.Block, origin string) (interfaces.ChainState, interfaces.ChainState, error) {
 	bc.insertLock.Lock()
 	defer bc.insertLock.Unlock()
+
+	if newblock.GetHeight()%321 == 0 {
+		runtime.GC() // 每 321个区块启动一次垃圾回收
+	}
 
 	/*
 	 */
@@ -95,6 +100,8 @@ func (bc *ChainKernel) DiscoverNewBlockToInsert(newblock interfaces.Block, origi
 		if e != nil {
 			return nil, nil, e // 写入磁盘出错
 		}
+		// 释放旧的状态
+		bc.stateImmutable.Destory() // 内存
 		bc.stateImmutable = newComfirmImmutableState
 	}
 
