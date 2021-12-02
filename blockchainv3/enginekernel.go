@@ -158,6 +158,7 @@ func (b ChainKernel) StateRead() interfaces.ChainStateOperationRead {
 func (b ChainKernel) CurrentState() interfaces.ChainState {
 	b.insertLock.RLock()
 	defer b.insertLock.RUnlock()
+
 	return b.stateCurrent
 }
 
