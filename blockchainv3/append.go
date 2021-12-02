@@ -120,14 +120,16 @@ func (bc *ChainKernel) forkStateWithAppendBlock(baseState *chainstatev3.ChainSta
 		if newblktxs[i].GetTimestamp() > timenow {
 			return nil, fmt.Errorf(errmsgprifix+"Tx timestamps %d is not more than now %d.", newblktxs[i].GetTimestamp(), timenow)
 		}
-		txhashnofee := newblktxs[i].Hash()
-		ok, e := baseState.CheckTxHash(txhashnofee)
-		if e != nil {
-			return nil, e
-		}
-		if ok == true {
-			return nil, fmt.Errorf(errmsgprifix+"Tx %s is exist.", txhashnofee.ToHex())
-		}
+		/*
+			txhashnofee := newblktxs[i].Hash()
+			ok, e := baseState.CheckTxHash(txhashnofee)
+			if e != nil {
+				return nil, e
+			}
+			if ok == true {
+				return nil, fmt.Errorf(errmsgprifix+"Tx %s is exist.", txhashnofee.ToHex())
+			}
+		*/
 		totaltxsize += newblktxs[i].Size()
 	}
 	if totaltxsize > mint.SingleBlockMaxSize {
