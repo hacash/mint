@@ -110,7 +110,11 @@ func (bc *ChainKernel) DiscoverNewBlockToInsert(newblock interfaces.Block, origi
 	if isChangeCurrentState {
 		// 更新区块指针
 		var upPtrState = newstate
-		for i := 0; i < ImmatureBlockMaxLength; i++ {
+		upNUmPtrMax := ImmatureBlockMaxLength
+		if blockOriginIsSync {
+			upNUmPtrMax = 1 // 当为同步区块时，只需要更新最后一个区块的指针
+		}
+		for i := 0; i < upNUmPtrMax; i++ {
 			if upPtrState == nil {
 				break
 			}
