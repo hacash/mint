@@ -1,8 +1,10 @@
 package difficulty
 
-import "github.com/hacash/core/interfacev2"
+import (
+	"github.com/hacash/core/interfaces"
+)
 
-func CheckHashDifficultySatisfyByBlock(blkhash []byte, block interfacev2.Block) bool {
+func CheckHashDifficultySatisfyByBlock(blkhash []byte, block interfaces.Block) bool {
 	targetdiffhash := Uint32ToHash(block.GetHeight(), block.GetDifficulty())
 	return CheckHashDifficultySatisfy(blkhash, targetdiffhash)
 }

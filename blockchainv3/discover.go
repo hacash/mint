@@ -21,7 +21,7 @@ func (bc *ChainKernel) DiscoverNewBlockToInsert(newblock interfaces.Block, origi
 
 	/*
 	 */
-	blockOriginIsSync := origin == "sync" || origin == ""
+	blockOriginIsSync := origin == "sync" || origin == "" || origin == "update"
 
 	oldImmutablePending := bc.stateImmutable.GetPending()
 
