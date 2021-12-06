@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/hacash/chain/chainstatev3"
 	"github.com/hacash/core/blocks"
+	"github.com/hacash/core/fields"
 	"github.com/hacash/core/interfaces"
 )
 
@@ -31,6 +32,10 @@ func (b *ChainKernel) BuildImmatureBlockStates() (*chainstatev3.ChainState, erro
 	store := s.BlockStore()
 	fmt.Printf("[BlockChain] Build %d immature block states: ", len(ithxs))
 	for _, hx := range ithxs {
+		if len(hx) != fields.HashSize {
+			fmt.Printf("BuildImmatureBlockStates error: len(hx) != fields.HashSize\n")
+			continue
+		}
 		tarblkbts, e := store.ReadBlockBytesByHash(hx)
 		if e != nil {
 			return nil, e
@@ -44,6 +49,10 @@ func (b *ChainKernel) BuildImmatureBlockStates() (*chainstatev3.ChainState, erro
 		baseState, e := s.SearchBaseStateByBlockHashObj(tarblk.GetPrevHash())
 		if e != nil {
 			return nil, e
+		}
+		if baseState == nil {
+			fmt.Printf("BuildImmatureBlockStates error: cannot find base state for block %d\n", tarblk.GetHeight())
+			continue // cannot find base state
 		}
 		// 插入并获得状态newState
 		_, e = b.forkStateWithAppendBlock(baseState, tarblk.(interfaces.Block))
