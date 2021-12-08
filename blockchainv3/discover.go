@@ -3,7 +3,6 @@ package blockchainv3
 import (
 	"fmt"
 	"github.com/hacash/core/interfaces"
-	"github.com/hacash/core/interfacev2"
 	"runtime"
 )
 
@@ -140,7 +139,7 @@ func (bc *ChainKernel) DiscoverNewBlockToInsert(newblock interfaces.Block, origi
 				bc.diamondCreateFeed.Send(diamondCreate)
 			}
 			// 发送新区快到达通知
-			bc.validatedBlockInsertFeed.Send(newblock.(interfacev2.Block))
+			bc.validatedBlockInsertFeed.Send(newblock)
 		}
 	}
 
