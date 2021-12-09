@@ -133,13 +133,13 @@ func (bc *ChainKernel) DiscoverNewBlockToInsert(newblock interfaces.Block, origi
 
 		// feed
 		if false == blockOriginIsSync {
+			// 发送新区快到达通知
+			bc.validatedBlockInsertFeed.Send(newblock)
 			// send feed
 			if diamondCreate != nil {
 				// 新确认了钻石
 				bc.diamondCreateFeed.Send(diamondCreate)
 			}
-			// 发送新区快到达通知
-			bc.validatedBlockInsertFeed.Send(newblock)
 		}
 	}
 

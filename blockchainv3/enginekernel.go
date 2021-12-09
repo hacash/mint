@@ -143,11 +143,10 @@ func (bc *ChainKernel) Close() error {
 }
 
 func (bc *ChainKernel) InsertBlock(newblk interfaces.Block, origin string) error {
-	blkv3 := newblk.(interfaces.Block)
 	if origin != "" {
-		blkv3.SetOriginMark(origin)
+		newblk.SetOriginMark(origin)
 	}
-	_, _, e := bc.DiscoverNewBlockToInsert(blkv3, origin)
+	_, _, e := bc.DiscoverNewBlockToInsert(newblk, origin)
 	return e
 }
 

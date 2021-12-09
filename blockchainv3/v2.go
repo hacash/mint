@@ -170,7 +170,7 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfaces.Transacti
 		if e1 != nil {
 			return nil, nil, 0, e1
 		}
-		err := tx.(interfaces.Transaction).WriteInChainState(txTempState)
+		err := tx.WriteInChainState(txTempState)
 		if err != nil {
 			//fmt.Println("********************  create block error  ***********************")
 			//fmt.Println(err)
