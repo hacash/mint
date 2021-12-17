@@ -2,7 +2,7 @@ package mint
 
 var (
 	SingleBlockMaxSize    uint32 = 1024 * 500 // ≈ 500KB
-	SingleBlockMaxTxCount uint32 = 1000       // ≈ 500KB
+	SingleBlockMaxTxCount uint32 = 999        // ≈ coinbase + 999
 
 	AdjustTargetDifficultyNumberOfBlocks uint64 = 288 // about one day
 	EachBlockRequiredTargetTime          uint64 = 300 // 60 * 5 , about 5 min

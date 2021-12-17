@@ -115,6 +115,7 @@ func (bc *ChainKernel) forkStateWithAppendBlock(baseState *chainstatev3.ChainSta
 	// 判断包含交易是否已经存在 和 区块大小 和 交易时间戳
 	timenow := uint64(time.Now().Unix())
 	totaltxsize := uint32(0)
+	totaltxcount := uint32(0)
 	//blockstore := bc.chainstate.BlockStore()
 	for i := 1; i < len(newblktxs); i++ { // ignore coinbase tx
 		if newblktxs[i].GetTimestamp() > timenow {
@@ -131,9 +132,13 @@ func (bc *ChainKernel) forkStateWithAppendBlock(baseState *chainstatev3.ChainSta
 			}
 		*/
 		totaltxsize += newblktxs[i].Size()
+		totaltxcount++
 	}
 	if totaltxsize > mint.SingleBlockMaxSize {
 		return nil, fmt.Errorf(errmsgprifix+"Txs total size %d is overflow max size %d.", totaltxsize, mint.SingleBlockMaxSize)
+	}
+	if totaltxcount > mint.SingleBlockMaxTxCount {
+		return nil, fmt.Errorf(errmsgprifix+"Txs total count %d is overflow max count %d.", totaltxcount, mint.SingleBlockMaxTxCount)
 	}
 	// 执行验证区块的每一笔交易
 	// fork state
