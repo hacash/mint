@@ -50,7 +50,7 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfaces.Transacti
 			removeTxs = append(removeTxs, tx) // remove it , its already in chain
 			continue
 		}
-		if totaltxs >= 2000 || totaltxssize >= mint.SingleBlockMaxSize {
+		if totaltxs >= mint.SingleBlockMaxTxCount || totaltxssize >= mint.SingleBlockMaxSize {
 			break // overflow block max size or max num
 		}
 		txTempState, e1 := blockTempState.NewSubBranchTemporaryChainState()
