@@ -83,8 +83,15 @@ func (bc *ChainKernel) DiscoverNewBlockToInsert(newblock interfaces.Block, origi
 
 	curPdptr := bc.stateCurrent.GetPending()
 	isChangeCurrentState := newblock.GetHeight() > curPdptr.GetPendingBlockHeight()
+	isChangeCurrentForkHead := false // 是否切换了分叉头
 	if isChangeCurrentState {
 		immutableStatus.SetLatestBlockHash(newblock.Hash())
+		if false == newblock.GetPrevHash().Equal(curPdptr.GetPendingBlockHash()) {
+			isChangeCurrentForkHead = true // prev hash不一致，切换了分叉头
+			//fmt.Println("prev hash 不一致，切换了分叉头")
+		} else {
+			//fmt.Println("prev hash 一致，只更新一个编号")
+		}
 	}
 
 	// 保存状态
@@ -109,9 +116,10 @@ func (bc *ChainKernel) DiscoverNewBlockToInsert(newblock interfaces.Block, origi
 	if isChangeCurrentState {
 		// 更新区块指针
 		var upPtrState = newstate
-		upNUmPtrMax := ImmatureBlockMaxLength
-		if blockOriginIsSync {
-			upNUmPtrMax = 1 // 当为同步区块时，只需要更新最后一个区块的指针
+		upNUmPtrMax := 1 // 当为同步区块或没有改变fork指针时，只需要更新最后一个区块的指针
+		if isChangeCurrentForkHead {
+			// 切换了分叉头，改变状态路径历史5个区块的指向高度
+			upNUmPtrMax = ImmatureBlockMaxLength + 1
 		}
 		for i := 0; i < upNUmPtrMax; i++ {
 			if upPtrState == nil {
@@ -132,7 +140,7 @@ func (bc *ChainKernel) DiscoverNewBlockToInsert(newblock interfaces.Block, origi
 		bc.stateCurrent = newstate
 
 		// feed
-		if false == blockOriginIsSync {
+		if isChangeCurrentForkHead || false == blockOriginIsSync {
 			// 发送新区快到达通知
 			bc.validatedBlockInsertFeed.Send(newblock)
 			// send feed
