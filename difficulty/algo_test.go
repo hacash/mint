@@ -4,9 +4,12 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"math"
 	"math/big"
 	"testing"
 )
+
+//
 
 // 计算哈希价值
 func CalculateHashWorthV2_old(hash []byte) *big.Int {
@@ -24,6 +27,19 @@ func CalculateHashWorthV2_old(hash []byte) *big.Int {
 	return worth
 }
 
+func Test_t148375092345(t *testing.T) {
+	restr := ""
+	upnum := 999
+	for i := float64(0); i < 256; i++ {
+		nx := int(math.Exp2(8 - math.Log2(i)))
+		if upnum != nx {
+			upnum = nx
+			restr += fmt.Sprintf("{%d, %d},\n", nx, int(i)-1)
+		}
+	}
+	fmt.Println(restr)
+}
+
 func Test_t1(t *testing.T) {
 
 	basehx := bytes.Repeat([]byte{255}, 32)
@@ -32,7 +48,7 @@ func Test_t1(t *testing.T) {
 
 		copy(basehx, []byte{uint8(i)})
 		//fmt.Println( basehx, BytesToBits(basehx) )
-		fmt.Println(basehx[0:4], BytesToBits(basehx)[0:16], CalculateHashWorth(1, basehx))
+		fmt.Println(basehx[0:4], BytesToBits(basehx)[0:16], CalculateHashWorth(basehx))
 
 	}
 }
@@ -126,7 +142,7 @@ func Test_t4(t *testing.T) {
 	}
 
 	for _, hx := range hxs {
-		fmt.Println(hex.EncodeToString(hx), CalculateHashWorth(220945, hx))
+		fmt.Println(hex.EncodeToString(hx), CalculateHashWorth(hx))
 	}
 
 }

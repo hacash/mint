@@ -102,9 +102,71 @@ func ConvertPowPowerToShowFormat_old(value *big.Int) string {
 }
 
 ///////////////////////////////////////////
+func antiByte(bt uint8) uint8 {
+	var antiByteSplitNums = [][]uint8{
+		{255, 0},
+		{128, 1},
+		{85, 2},
+		{64, 3},
+		{51, 4},
+		{42, 5},
+		{36, 6},
+		{32, 7},
+		{28, 8},
+		{25, 9},
+		{23, 10},
+		{21, 11},
+		{19, 12},
+		{18, 13},
+		{17, 14},
+		{16, 15},
+		{15, 16},
+		{14, 17},
+		{13, 18},
+		{12, 19},
+		{11, 21},
+		{10, 23},
+		{9, 25},
+		{8, 28},
+		{7, 32},
+		{6, 36},
+		{5, 42},
+		{4, 51},
+		{3, 64},
+		{2, 85},
+		{1, 128},
+		{0, 255},
+	}
+	for _, v := range antiByteSplitNums {
+		if bt >= v[0] {
+			return v[1]
+		}
+	}
+	return 0
+}
 
 // 计算哈希价值
+
 func CalculateHashWorth(hash []byte) *big.Int {
+	bigbytes := []byte{0, 0, 0}
+	zore := 0
+	for i := 0; i < 29; i++ {
+		if hash[i] > 0 {
+			//fmt.Println(hash, i)
+			bigbytes[0] = antiByte(hash[i])
+			bigbytes[1] = antiByte(hash[i+1])
+			bigbytes[2] = antiByte(hash[i+2])
+			break
+		}
+		zore++
+	}
+	if zore > 2 {
+		zore -= 2
+	}
+	bigbytes = append(bigbytes, bytes.Repeat([]byte{0}, zore)...)
+	return new(big.Int).SetBytes(bigbytes)
+}
+func CalculateHashWorth_old_2022_02_08(hash []byte) *big.Int {
 	worth := DifficultyHashToBig(antimatterHash(hash))
 	return worth
 	//repeat := x16rs.HashRepeatForBlockHeight(curheight)
@@ -113,7 +175,12 @@ func CalculateHashWorth(hash []byte) *big.Int {
 }
 
 // 计算难度价值
+
 func CalculateDifficultyWorth(diffnum uint32) *big.Int {
+	diffhx := DifficultyUint32ToHashForAntimatter(diffnum)
+	return CalculateHashWorth(diffhx)
+}
+func CalculateDifficultyWorth_old_2022_02_08(diffnum uint32) *big.Int {
 	diffhx := DifficultyUint32ToHashForAntimatter(diffnum)
 	worth := DifficultyHashToBig(antimatterHash(diffhx))
 	return worth

@@ -227,14 +227,14 @@ func DifficultyHashToUint32(hash_byte []byte) uint32 {
 	hash_bits = append(hash_bits, bytes.Repeat([]byte{1}, 3*8+12)...)
 	//fmt.Println(len(hash_bits), hash_bits)
 	//fmt.Println(headzero, headzero+3*8)
-	hash_bits_2 := BitsToBytes(hash_bits[headzero : headzero+3*8])
+	hash_bytes := BitsToBytes(hash_bits[headzero : headzero+3*8])
 	//fmt.Println(len(hash_bits_2), hash_bits_2)
 	//
 	diff_byte := make([]byte, 4)
 	diff_byte[0] = 255 - uint8(headzero)
-	diff_byte[1] = hash_bits_2[0]
-	diff_byte[2] = hash_bits_2[1]
-	diff_byte[3] = hash_bits_2[2]
+	diff_byte[1] = hash_bytes[0]
+	diff_byte[2] = hash_bytes[1]
+	diff_byte[3] = hash_bytes[2]
 
 	diff_number := binary.BigEndian.Uint32(diff_byte)
 	//fmt.Println("diff_number:", diff_number)
