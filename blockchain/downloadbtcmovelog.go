@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// 下载比特币单向转移记录
+// Download bitcoin one-way transfer records
 func (bc *BlockChain) downLoadBTCMoveLog() {
 
 	sleepTime := time.Hour * 8
@@ -27,14 +27,14 @@ func (bc *BlockChain) downLoadBTCMoveLog() {
 	}
 	downloadUrl := bc.config.DownloadBTCMoveLogUrl
 	reqpage := realpage
-	// 分页读取
+	// Paging read
 	limit := stores.SatoshiGenesisLogStorePageLimit
 	lastpageData := []string{}
 	if reqpage == 0 {
-		reqpage = 1 // 首次获取第一页
+		reqpage = 1 // Get the first page for the first time
 		lastpageData = []string{}
 	} else {
-		// 读取最后一页数据
+		// Read last page data
 		list, e := store.GetBTCMoveLogPageData(reqpage)
 		if e != nil {
 			fmt.Println(e)
@@ -42,34 +42,34 @@ func (bc *BlockChain) downLoadBTCMoveLog() {
 		}
 		lastpageData = stores.SatoshiGenesisPageSerializeForShow(list)
 	}
-	// 等待读取新增
+	// Waiting to read new
 	lastpage := reqpage
-	// 循环读取
+	// Cyclic read
 	for {
 		lastdatasize := len(lastpageData)
 		addgetstart := lastdatasize + ((lastpage - 1) * limit) + 1
 		addgetlimit := limit - lastdatasize
-		// 读取
+		// read
 		pagedata, err := readSatoshiGenesisByUrl(downloadUrl, addgetstart, addgetlimit)
 		if err != nil || len(pagedata) == 0 {
-			// 下载为空
+			// Download is empty
 			time.Sleep(sleepTime)
-			continue // 数据为空，休眠 8 小时 后重试
+			continue // The data is empty. Try again after 8 hours of hibernation
 		}
 		lastpageData = append(lastpageData, pagedata...)
-		// 保存
+		// preservation
 		e1 := store.SaveBTCMoveLogPageData(lastpage, stores.SatoshiGenesisPageParseForShow(lastpageData))
 		if e1 != nil {
 			fmt.Println("[Satoshi genesis] SaveBTCMoveLogPageData Error:", e1.Error())
 			return
 		}
 		if len(lastpageData) == limit {
-			// 满页了
+			// Full page
 			lastpageData = []string{}
 			lastpage++
-			continue // 立即下一页
+			continue // Next page now
 		}
-		// 休眠8小时后继续
+		// Continue after 8 hours of sleep
 		time.Sleep(sleepTime)
 		continue
 	}
@@ -93,13 +93,13 @@ func readSatoshiGenesisByUrl(url string, start int, limit int) ([]string, error)
 	body, _ := ioutil.ReadAll(resp.Body)
 	resstr := string(body)
 	if len(resstr) < 32 {
-		// 返回空
+		// Return null
 		fmt.Printf("[Satoshi genesis] got data count 0.\n")
 		return []string{}, nil
 	}
-	// 有内容
+	// With content
 	logs := strings.Split(resstr, "|")
 	fmt.Printf("[Satoshi genesis] got data count %d.\n", len(logs))
-	// 解析
+	// analysis
 	return logs, nil
 }

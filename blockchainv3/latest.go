@@ -5,9 +5,9 @@ import (
 	"github.com/hacash/core/stores"
 )
 
-// 最新的区块（已确认的，和未成熟的）
+// Latest blocks (confirmed and immature)
 func (bc *ChainKernel) LatestBlock() (interfaces.BlockHeadMetaRead, interfaces.BlockHeadMetaRead, error) {
-	// 已经磁盘确认的
+	// Disk confirmed
 	imm, e := bc.stateImmutable.ImmutableStatusRead()
 	if e != nil {
 		return nil, nil, e
@@ -15,7 +15,7 @@ func (bc *ChainKernel) LatestBlock() (interfaces.BlockHeadMetaRead, interfaces.B
 	return bc.stateCurrent.GetPending().GetPendingBlockHead(), imm.GetImmutableBlockHeadMeta(), nil
 }
 
-// 最新的区块钻石
+// Latest block diamonds
 func (bc *ChainKernel) LatestDiamond() (*stores.DiamondSmelt, error) {
 	status, e := bc.stateCurrent.LatestStatusRead()
 	if e != nil {

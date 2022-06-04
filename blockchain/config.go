@@ -10,9 +10,9 @@ type BlockChainConfig struct {
 	RollbackToHeight uint64
 	// btc move
 	DownloadBTCMoveLogUrl     string
-	DisableDownloadBTCMoveLog bool // 不下载日志
+	DisableDownloadBTCMoveLog bool // Do not download logs
 
-	// 数据库重建模式
+	// Database rebuild mode
 	DatabaseVersionRebuildMode bool
 }
 
@@ -38,7 +38,7 @@ func NewBlockChainConfig(cnffile *sys.Inicnf) *BlockChainConfig {
 	if sec2.Key("enable").MustBool(false) {
 		cnf.DownloadBTCMoveLogUrl = sec2.Key("logs_url").MustString("")
 	}
-	// 不下载日志
+	// Do not download logs
 	cnf.DisableDownloadBTCMoveLog = sec2.Key("disable_download").MustBool(false)
 
 	cnf.Datadir = cnffile.MustDataDirWithVersion()

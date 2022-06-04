@@ -17,9 +17,9 @@ func (b *BlockChain) ValidateDiamondCreateAction(action interfaces.Action) error
 		return fmt.Errorf("its not Action_4_DiamondCreate Action.")
 	}
 
-	// 开发者模式，不做检查
+	// Developer mode, no check
 	if sys.TestDebugLocalDevelopmentMark {
-		return nil // 开发者模式不检查返回成功
+		return nil // Developer mode does not check and returns success
 	}
 
 	last, err := b.StateRead().ReadLastestDiamond()
@@ -46,7 +46,7 @@ func (b *BlockChain) ValidateDiamondCreateAction(action interfaces.Action) error
 	if hashave != nil {
 		return fmt.Errorf("Diamond <%s> already exist.", act.Diamond)
 	}
-	// 检查钻石挖矿计算
+	// Check diamond mining calculation
 	sha3hash, diamond_resbytes, diamond_str := x16rs.Diamond(uint32(act.Number), act.PrevHash, act.Nonce, act.Address, act.GetRealCustomMessage())
 	diamondstrval, isdia := x16rs.IsDiamondHashResultString(diamond_str)
 	if !isdia {
@@ -55,7 +55,7 @@ func (b *BlockChain) ValidateDiamondCreateAction(action interfaces.Action) error
 	if strings.Compare(diamondstrval, string(act.Diamond)) != 0 {
 		return fmt.Errorf("Diamond need <%s> but got <%s>", act.Diamond, diamondstrval)
 	}
-	// 检查钻石难度值
+	// Check diamond difficulty value
 	difok := x16rs.CheckDiamondDifficulty(uint32(act.Number), sha3hash, diamond_resbytes)
 	if !difok {
 		return fmt.Errorf("Diamond difficulty not meet the requirements.")

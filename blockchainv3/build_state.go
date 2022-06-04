@@ -18,17 +18,17 @@ func (b *ChainKernel) BuildImmatureBlockStates() (*chainstatev3.ChainState, erro
 
 	s := b.stateImmutable
 
-	// 读取状态
+	// Read status
 	latestStatus, e := s.ImmutableStatusRead()
 	if e != nil {
 		return nil, e
 	}
 	ithxs := latestStatus.GetImmatureBlockHashList()
 	if len(ithxs) == 0 {
-		// 不存在需要重建的状态
+		// There is no state to rebuild
 		return s, nil
 	}
-	// 开始读取区块数据
+	// Start reading block data
 	store := s.BlockStore()
 	fmt.Printf("[BlockChain] Build %d immature block states: ", len(ithxs))
 	for _, hx := range ithxs {
@@ -40,12 +40,12 @@ func (b *ChainKernel) BuildImmatureBlockStates() (*chainstatev3.ChainState, erro
 		if e != nil {
 			return nil, e
 		}
-		// 解析区块
+		// Parsing block
 		tarblk, _, e := blocks.ParseBlock(tarblkbts, 0)
 		if e != nil {
 			return nil, e
 		}
-		// 搜寻插入的父级状态
+		// Search inserted parent status
 		baseState, e := s.SearchBaseStateByBlockHashObj(tarblk.GetPrevHash())
 		if e != nil {
 			return nil, e
@@ -54,19 +54,19 @@ func (b *ChainKernel) BuildImmatureBlockStates() (*chainstatev3.ChainState, erro
 			fmt.Printf("BuildImmatureBlockStates error: cannot find base state for block %d\n", tarblk.GetHeight())
 			continue // cannot find base state
 		}
-		// 插入并获得状态newState
+		// Insert and get state newstate
 		_, e = b.forkStateWithAppendBlock(baseState, tarblk.(interfaces.Block))
 		if e != nil {
 			return nil, e
 		}
 		fmt.Printf("%d ", tarblk.GetHeight())
 	}
-	// 区块建立完毕，找出最新头部 current state
+	// After the block is created, find the latest header current state
 	currenthash := latestStatus.GetLatestBlockHash()
 	if currenthash == nil {
-		return s, nil // 最新状态就是当前状态
+		return s, nil // The latest status is the current status
 	}
-	// 搜寻
+	// search for
 	curState, e := s.SearchBaseStateByBlockHashObj(currenthash)
 	if e != nil {
 		return nil, e
@@ -78,6 +78,6 @@ func (b *ChainKernel) BuildImmatureBlockStates() (*chainstatev3.ChainState, erro
 	}
 	fmt.Printf("finished. current block: %d hash: ....%s\n", curState.GetPendingBlockHeight(), hex.EncodeToString(curhx))
 
-	// 返回
+	// return
 	return curState, nil
 }

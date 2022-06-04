@@ -74,7 +74,7 @@ func seekAlllogFiles() {
 
 	for i := 1; ; i++ {
 		textfile := fmt.Sprintf("./btcmovelogs%d.txt", i)
-		// 读取文件
+		// read file
 		file, err := os.Open(textfile)
 		if err != nil {
 			break
@@ -91,20 +91,20 @@ func seekAlllogFiles() {
 			if genis == nil {
 				continue
 			}
-			// 验证
+			// verification
 			ckok := checkGenesis(prevGenesis, genis, textfile, curtrsno, fl)
 			if !ckok {
 				return
 			}
-			// 添加进缓存
+			// Add to cache
 			cacheDatas = append(cacheDatas, genis)
-			// 下一行
+			// next row
 			prevGenesis = genis
 			curtrsno++
 			fl++
 		}
 		filenum++
-		// 下一个文件
+		// Next file
 		file.Close()
 	}
 	//fmt.Println(cacheDatas)
@@ -115,7 +115,7 @@ func parseGenesis(line, textfile string, curtrsno, fl int64) *stores.SatoshiGene
 
 	fixline := strings.Replace(line, " ", "", -1)
 	if len(fixline) == 0 {
-		return nil // 忽略空行
+		return nil // Ignore blank lines
 	}
 	dts := strings.Split(fixline, ",")
 	if len(dts) != 8 {
@@ -123,7 +123,7 @@ func parseGenesis(line, textfile string, curtrsno, fl int64) *stores.SatoshiGene
 		exitError(exrr, textfile, curtrsno, fl)
 		return nil
 	}
-	// 解析数据
+	// Parse data
 	nums := make([]int64, 6)
 	for i := 0; i < 6; i++ {
 		n, e := strconv.ParseInt(dts[i], 10, 0)
@@ -134,7 +134,7 @@ func parseGenesis(line, textfile string, curtrsno, fl int64) *stores.SatoshiGene
 		}
 		nums[i] = n
 	}
-	// 检查地址 和 txhx
+	// Check address and txhx
 	addr, ae := fields.CheckReadableAddress(dts[6])
 	if ae != nil {
 		exrr := fmt.Sprintf("address format error \"%s\" ", dts[6])
@@ -152,7 +152,7 @@ func parseGenesis(line, textfile string, curtrsno, fl int64) *stores.SatoshiGene
 		exitError(exrr, textfile, curtrsno, fl)
 		return nil
 	}
-	// 返回
+	// return
 	return &stores.SatoshiGenesis{
 		fields.VarUint4(nums[0]),
 		fields.VarUint4(nums[1]),
@@ -169,7 +169,7 @@ func checkGenesis(prevGenesis, genis *stores.SatoshiGenesis, textfile string, cu
 
 	//fmt.Println(int64(genis.TransferNo), curtrsno)
 
-	// 验证 trsno
+	// Verify trsno
 	if int64(genis.TransferNo) != curtrsno {
 		exrr := fmt.Sprintf("TransferNo need %d but got %d", curtrsno, genis.TransferNo)
 		exitError(exrr, textfile, curtrsno, fl)
@@ -184,21 +184,21 @@ func checkGenesis(prevGenesis, genis *stores.SatoshiGenesis, textfile string, cu
 			return false
 		}
 	} else {
-		// 验证区块高度
+		// Verify block height
 		if genis.BitcoinBlockHeight < prevGenesis.BitcoinBlockHeight {
 			exrr := fmt.Sprintf("BitcoinBlockHeight need no less than %d but got %d",
 				prevGenesis.BitcoinBlockHeight, genis.BitcoinBlockHeight)
 			exitError(exrr, textfile, curtrsno, fl)
 			return false
 		}
-		// 验证时间戳
+		// Validate timestamp
 		if genis.BitcoinBlockTimestamp < prevGenesis.BitcoinBlockTimestamp {
 			exrr := fmt.Sprintf("BitcoinBlockTimestamp need no less than %d but got %d",
 				prevGenesis.BitcoinBlockTimestamp, genis.BitcoinBlockTimestamp)
 			exitError(exrr, textfile, curtrsno, fl)
 			return false
 		}
-		// 验证 已经转移的BTC数量
+		// Verify the number of BTCs that have been transferred
 		effbtc := prevGenesis.BitcoinEffectiveGenesis + prevGenesis.BitcoinQuantity
 		if genis.BitcoinEffectiveGenesis != effbtc {
 			exrr := fmt.Sprintf("BitcoinEffectiveGenesis need %d but got %d",
@@ -208,14 +208,14 @@ func checkGenesis(prevGenesis, genis *stores.SatoshiGenesis, textfile string, cu
 		}
 	}
 
-	// 验证比特币数量
+	// Verify bitcoin quantity
 	mvbtc := int64(genis.BitcoinQuantity)
 	if mvbtc < 1 || mvbtc > 10000 {
 		exrr := fmt.Sprintf("BitcoinQuantity need between %s but got %d", "1 ~ 1000", genis.BitcoinQuantity)
 		exitError(exrr, textfile, curtrsno, fl)
 		return false
 	}
-	// 验证增发的HAC数量
+	// Verify the number of additional HACs
 	var ttHacNum int64 = 0
 	for i := genis.BitcoinEffectiveGenesis + 1; i <= genis.BitcoinEffectiveGenesis+genis.BitcoinQuantity; i++ {
 		ttHacNum += coinbase.MoveBtcCoinRewardNumber(int64(i))
@@ -226,7 +226,7 @@ func checkGenesis(prevGenesis, genis *stores.SatoshiGenesis, textfile string, cu
 		return false
 	}
 
-	// 检查成功
+	// Check successful
 	return true
 }
 
@@ -246,10 +246,10 @@ func dealQuery(w http.ResponseWriter, request *http.Request) {
 		//w.Write([]byte("not find"))
 		return
 	}
-	// 获取
+	// obtain
 	seekIdx := (trsno - 1)
-	// 读取
-	// 打印
+	// read
+	// Print
 	allretstr := []string{}
 	for i := seekIdx; i < int64(len(cacheDatas)) && i < seekIdx+limit; i++ {
 		genesis := cacheDatas[i]
@@ -267,7 +267,7 @@ func dealQuery(w http.ResponseWriter, request *http.Request) {
 		allretstr = append(allretstr, resstr)
 	}
 
-	// 输出结果
+	// Output results
 	w.Write([]byte(strings.Join(allretstr, "|")))
 	return
 

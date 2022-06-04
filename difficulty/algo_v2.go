@@ -11,11 +11,11 @@ import (
 )
 
 var (
-	LowestDifficultyCompact       = uint32(4294967294) // 首次调整难度前的预设难度值
-	usedVersionV2AboveBlockHeight = uint64(288 * 160)  // 从第 160 个难度周期后开始使用新算法
+	LowestDifficultyCompact       = uint32(4294967294) // Preset difficulty value before first adjustment of difficulty
+	usedVersionV2AboveBlockHeight = uint64(288 * 160)  // Start using the new algorithm after the 160th difficulty cycle
 )
 
-// 封装的版本   对外接口   v1 + v2
+// Encapsulated version external interface V1 + V2
 
 func CalculateNextTarget(
 	lastestBits uint32,
@@ -29,15 +29,15 @@ func CalculateNextTarget(
 	if lastestBits == 0 {
 		lastestBits = LowestDifficultyCompact // deal genesis block
 	}
-	// 使用新版
+	// Use new version
 	if currentHeight >= usedVersionV2AboveBlockHeight {
 		if currentHeight >= uint64(288*450) { // 129600
-			// 以前代码实际只查询了前287个区块的总用时，某个高度之后加上300秒，变为查询288个
+			// In the past, the code actually only queried the total time of the first 287 blocks. After a certain height is added 300 seconds, it becomes 288 blocks
 			lastestTimestamp += eachblocktime
 		}
 		return DifficultyCalculateNextTarget_v2(lastestBits, currentHeight, prev288BlockTimestamp, lastestTimestamp, eachblocktime, changeblocknum, printInfo)
 	}
-	// 最旧版
+	// Oldest version
 	b1, u1 := CalculateNextTargetDifficulty_v1(lastestBits, currentHeight, prev288BlockTimestamp, lastestTimestamp, eachblocktime, changeblocknum, printInfo)
 	//return BigToHash256_v1(b1), b1, u1
 	//if bytes.Compare(BigToHash256_v1(b1), Uint32ToHash256_v1(u1)) != 0 {
@@ -47,53 +47,53 @@ func CalculateNextTarget(
 }
 
 func Uint32ToBig(currentHeight uint64, diff_num uint32) *big.Int {
-	// 使用新版
+	// Use new version
 	if currentHeight >= usedVersionV2AboveBlockHeight {
 		return DifficultyUint32ToBig(diff_num)
 	}
-	// 最旧版
+	// Oldest version
 	return Uint32ToBig_v1(diff_num)
 }
 
 func Uint32ToHash(currentHeight uint64, diff_num uint32) []byte {
-	// 使用新版
+	// Use new version
 	if currentHeight >= usedVersionV2AboveBlockHeight {
 		return DifficultyUint32ToHash(diff_num)
 	}
-	// 最旧版
+	// Oldest version
 	return Uint32ToHash256_v1(diff_num)
 }
 
 func HashToBig(currentHeight uint64, hash []byte) *big.Int {
-	// 使用新版
+	// Use new version
 	if currentHeight >= usedVersionV2AboveBlockHeight {
 		return DifficultyHashToBig(hash)
 	}
-	// 最旧版
+	// Oldest version
 	return HashToBig_v1(hash)
 }
 
 func HashToUint32(currentHeight uint64, hash []byte) uint32 {
-	// 使用新版
+	// Use new version
 	if currentHeight >= usedVersionV2AboveBlockHeight {
 		return DifficultyHashToUint32(hash)
 	}
-	// 最旧版
+	// Oldest version
 	return Hash256ToUint32_v1(hash)
 }
 
 func BigToHash(currentHeight uint64, bignum *big.Int) []byte {
-	// 使用新版
+	// Use new version
 	if currentHeight >= usedVersionV2AboveBlockHeight {
 		return DifficultyBigToHash(bignum)
 	}
-	// 最旧版
+	// Oldest version
 	return BigToHash256_v1(bignum)
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-// 计算下一阶段区块难度
+// Calculate the block difficulty of the next stage
 func DifficultyCalculateNextTarget_v2(
 	currentBits uint32,
 	currentHeight uint64,
@@ -105,20 +105,20 @@ func DifficultyCalculateNextTarget_v2(
 ) ([]byte, *big.Int, uint32) {
 
 	powTargetTimespan := time.Second * time.Duration(eachblocktime*changeblocknum) // 一分钟一个快
-	// 如果新区块height不是 288 的整数倍，则不需要更新，仍然是最后一个区块的 bits
+	// If the height of the new block is not an integer multiple of 288, it does not need to be updated. It is still the bits of the last block
 	if currentHeight%changeblocknum != 0 {
 		currentBig := DifficultyUint32ToBig(currentBits)
 		return DifficultyBigToHash(currentBig), currentBig, currentBits
 	}
 	prev2016blockTimestamp := time.Unix(int64(prevTimestamp), 0)
 	lastBlockTimestamp := time.Unix(int64(lastTimestamp), 0)
-	// 计算 288 个区块出块时间
+	// Calculate the block out time of 288 blocks
 	actualTimespan := lastBlockTimestamp.Sub(prev2016blockTimestamp)
 	if actualTimespan < powTargetTimespan/4 {
 		// 如果小于1/4天，则按1/4天计算
 		actualTimespan = powTargetTimespan / 4
 	} else if actualTimespan > powTargetTimespan*4 {
-		// 如果超过4天，则按4天计算
+		// If it exceeds 4 days, it shall be calculated as 4 days
 		actualTimespan = powTargetTimespan * 4
 	}
 
@@ -130,7 +130,7 @@ func DifficultyCalculateNextTarget_v2(
 	nextBits := DifficultyBigToUint32(newTarget)
 	nextHash := DifficultyBigToHash(newTarget)
 
-	// 打印数据
+	// print data
 	if printInfo != nil {
 		actual_t, target_t := uint64(actualTimespan.Seconds()), uint64(powTargetTimespan.Seconds())
 		nhs := strings.TrimRight(hex.EncodeToString(nextHash), "0")
@@ -170,7 +170,7 @@ func DifficultyUint32ToHashEx(diff_num uint32, filltail uint8) []byte {
 	diff_byte := make([]byte, 4)
 	binary.BigEndian.PutUint32(diff_byte, diff_num)
 
-	// 还原
+	// reduction
 	originally_bits_1 := bytes.Repeat([]byte{0}, 255-int(diff_byte[0]))
 	//fmt.Println("originally_bits_1:", len(originally_bits_1), originally_bits_1)
 	originally_bits_2 := BytesToBits([]byte{diff_byte[1], diff_byte[2], diff_byte[3]})
@@ -193,7 +193,7 @@ func DifficultyUint32ToHashEx(diff_num uint32, filltail uint8) []byte {
 func DifficultyBigToHash(diff_big *big.Int) []byte {
 	bigbytes := diff_big.Bytes()
 	if len(bigbytes) > 32 {
-		bigbytes = bytes.Repeat([]byte{255}, 32) // 超出时取最大值
+		bigbytes = bytes.Repeat([]byte{255}, 32) // Maximum value when exceeding
 	}
 	buf := bytes.NewBuffer(bytes.Repeat([]byte{0}, 32-len(bigbytes)))
 	buf.Write(bigbytes)

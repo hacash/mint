@@ -112,7 +112,7 @@ func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock int
 	if difficulty.CheckHashDifficultySatisfy(newBlockHash, targetDiffHash) == false {
 		return fmt.Errorf(errmsgprifix+"Maximum accepted hash diffculty is %s but got %s.", hex.EncodeToString(targetDiffHash), newBlockHashHexStr)
 	}
-	// 检查验证全部交易签名
+	// Check and verify all transaction signatures
 	sigok, e6 := newblock.VerifyNeedSigns()
 	if e6 != nil {
 		return e6
@@ -120,7 +120,7 @@ func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock int
 	if sigok != true {
 		return fmt.Errorf(errmsgprifix + "Block signature verify faild.")
 	}
-	// 判断包含交易是否已经存在 和 区块大小 和 交易时间戳
+	// Judge whether the included transaction already exists, block size and transaction timestamp
 	timenow := uint64(time.Now().Unix())
 	totaltxsize := uint32(0)
 	//blockstore := bc.chainstate.BlockStore()
@@ -141,7 +141,7 @@ func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock int
 	if totaltxsize > mint.SingleBlockMaxSize {
 		return fmt.Errorf(errmsgprifix+"Txs total size %d is overflow max size %d.", totaltxsize, mint.SingleBlockMaxSize)
 	}
-	// 执行验证区块的每一笔交易
+	// Execute every transaction of the verification block
 	newBlockChainState, e7 := bc.chainstate.NewSubBranchTemporaryChainState()
 	if e7 != nil {
 		return e7
@@ -157,7 +157,7 @@ func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock int
 	if err2 != nil {
 		return err2
 	}
-	// 储存状态数据
+	// Store status data
 	err3 := bc.chainstate.MergeCoverWriteChainState(newBlockChainState)
 	if err3 != nil {
 		return err3
@@ -179,7 +179,7 @@ func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock int
 
 	orimark := newblock.OriginMark()
 	if orimark != "" && orimark != "sync" {
-		// 发送新区快通知
+		// Send new area express notification
 		bc.validatedBlockInsertFeed.Send(interfacev2.Block(newblock))
 	}
 
@@ -187,9 +187,9 @@ func (bc *BlockChain) tryValidateAppendNewBlockToChainStateAndStore(newblock int
 	return nil
 }
 
-// 不安全的升级数据库
+// Unsafe upgrade database
 func (bc *BlockChain) insertBlockToChainStateAndStoreUnsafe(newblock interfacev2.Block) error {
-	// 状态
+	// state
 	newBlockChainState, e7 := bc.chainstate.NewSubBranchTemporaryChainState()
 	if e7 != nil {
 		return e7
@@ -205,7 +205,7 @@ func (bc *BlockChain) insertBlockToChainStateAndStoreUnsafe(newblock interfacev2
 	if err2 != nil {
 		return err2
 	}
-	// 储存状态数据
+	// Store status data
 	err3 := bc.chainstate.MergeCoverWriteChainState(newBlockChainState)
 	if err3 != nil {
 		return err3

@@ -15,9 +15,9 @@ import (
 	"time"
 )
 
-// 新建状态去插入区块
+// New status to insert block
 func (bc *ChainKernel) forkStateWithAppendBlock(baseState *chainstatev3.ChainState, newblock interfaces.Block) (*chainstatev3.ChainState, error) {
-	// 检查区块高度和 prev 哈希等等
+	// Check block height, prev hash, etc
 	prevPending := baseState.GetPending()
 	prevblock := prevPending.GetPendingBlockHead()
 	if prevblock == nil {
@@ -25,7 +25,7 @@ func (bc *ChainKernel) forkStateWithAppendBlock(baseState *chainstatev3.ChainSta
 	}
 	prevblockHeight := prevPending.GetPendingBlockHeight()
 	prevblockHash := prevPending.GetPendingBlockHash()
-	// 开始写入
+	// Start writing
 	newBlockHeight := newblock.GetHeight()
 	newBlockTimestamp := newblock.GetTimestamp()
 	newBlockHash := newblock.HashFresh()
@@ -104,7 +104,7 @@ func (bc *ChainKernel) forkStateWithAppendBlock(baseState *chainstatev3.ChainSta
 	if difficulty.CheckHashDifficultySatisfy(newBlockHash, targetDiffHash) == false {
 		return nil, fmt.Errorf(errmsgprifix+"Maximum accepted hash diffculty is %s but got %s.", hex.EncodeToString(targetDiffHash), newBlockHashHexStr)
 	}
-	// 检查验证全部交易签名
+	// Check and verify all transaction signatures
 	sigok, e6 := newblock.VerifyNeedSigns()
 	if e6 != nil {
 		return nil, e6
@@ -112,7 +112,7 @@ func (bc *ChainKernel) forkStateWithAppendBlock(baseState *chainstatev3.ChainSta
 	if sigok != true {
 		return nil, fmt.Errorf(errmsgprifix + "Block signature verify faild.")
 	}
-	// 判断包含交易是否已经存在 和 区块大小 和 交易时间戳
+	// Judge whether the included transaction already exists, block size and transaction timestamp
 	timenow := uint64(time.Now().Unix())
 	totaltxsize := uint32(0)
 	totaltxcount := uint32(0)
@@ -140,7 +140,7 @@ func (bc *ChainKernel) forkStateWithAppendBlock(baseState *chainstatev3.ChainSta
 	if totaltxcount > mint.SingleBlockMaxTxCount {
 		return nil, fmt.Errorf(errmsgprifix+"Txs total count %d is overflow max count %d.", totaltxcount, mint.SingleBlockMaxTxCount)
 	}
-	// 执行验证区块的每一笔交易
+	// Execute every transaction of the verification block
 	// fork state
 	newBlockChainState, e := baseState.ForkNextBlockObj(newblock.GetHeight(), newblock.Hash(), newblock)
 	if e != nil {
@@ -153,13 +153,13 @@ func (bc *ChainKernel) forkStateWithAppendBlock(baseState *chainstatev3.ChainSta
 	if newblock.GetHeight() == 1 && bc.initcall != nil {
 		bc.initcall(newBlockChainState)
 	}
-	// 写入区块状态
+	// Write block status
 	err2 := newblock.WriteInChainState(newBlockChainState)
 	if err2 != nil {
 		return nil, err2
 	}
 
-	// 储存状态数据
+	// Store status data
 	/*
 		err3 := bc.chainstate.MergeCoverWriteChainState(newBlockChainState)
 		if err3 != nil {
@@ -185,7 +185,7 @@ func (bc *ChainKernel) forkStateWithAppendBlock(baseState *chainstatev3.ChainSta
 
 		orimark := newblock.OriginMark()
 		if orimark != "" && orimark != "sync" {
-			// 发送新区快通知
+			// Send new area express notification
 			bc.validatedBlockInsertFeed.Send(interfaces.Block(newblock))
 		}
 	*/

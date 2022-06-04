@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-// 区块链实例
+// Blockchain instance
 type BlockChain struct {
 	config *BlockChainConfig
 
@@ -25,7 +25,7 @@ func NewBlockChain(cnf *BlockChainConfig) (*BlockChain, error) {
 		return nil, e
 	}
 
-	// 首次初始化状态
+	// First initialization status
 	engine.ChainStateIinitializeCall(setupHacashChainState)
 
 	ins := &BlockChain{
@@ -62,7 +62,7 @@ func (bc *BlockChain) Start() error {
 		return e
 	}
 
-	// 循环等待下载比特币转移日志
+	// Cycle waiting for downloading bitcoin transfer log
 	go bc.chainEngine.CurrentState().BlockStore().RunDownLoadBTCMoveLog()
 
 	go bc.loop()

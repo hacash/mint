@@ -44,7 +44,7 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfaces.Transacti
 	totaltxssize := uint32(0)
 
 	for _, tx := range txlist {
-		// 检查tx是否存在
+		// Check if TX is present
 		txinchain, e0 := bc.chainstate.CheckTxHash(tx.Hash())
 		if e0 != nil || txinchain {
 			removeTxs = append(removeTxs, tx) // remove it , its already in chain
@@ -66,10 +66,10 @@ func (bc *BlockChain) CreateNextBlockByValidateTxs(txlist []interfaces.Transacti
 		}
 		// add
 		nextblock.AddTransaction(tx.(interfacev2.Transaction))
-		// 统计
+		// Statistics
 		totaltxs += 1
 		totaltxssize += tx.Size()
-		// 合并状态
+		// Merge status
 		e2 := blockTempState.MergeCoverWriteChainState(txTempState)
 		if e2 != nil {
 			txTempState.DestoryTemporary()
