@@ -11,7 +11,7 @@ import (
 
 //
 
-// 计算哈希价值
+// Calculate hash value
 func CalculateHashWorthV2_old(hash []byte) *big.Int {
 	mulstep := big.NewInt(256)
 	worth := big.NewInt(1)

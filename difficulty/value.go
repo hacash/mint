@@ -27,7 +27,7 @@ func pow(value *big.Int, x int) *big.Int {
 	return num
 }
 
-// 转换为 哈希 为算力显示
+// Convert to hash for calculation force display
 func ConvertDifficultyToRateShow(diffnum uint32, usetimesec int64) string {
 	hxworth := CalculateDifficultyWorth(diffnum)
 	hashrate := new(big.Int).Div(hxworth, big.NewInt(usetimesec))
@@ -35,7 +35,7 @@ func ConvertDifficultyToRateShow(diffnum uint32, usetimesec int64) string {
 	return hashrateshow
 }
 
-// 转换为 哈希 为算力显示
+// Convert to hash for calculation force display
 func ConvertHashToRateShow(hx []byte, usetimesec int64) string {
 	hxworth := CalculateHashWorth(hx)
 	hashrate := new(big.Int).Div(hxworth, big.NewInt(usetimesec))
@@ -145,7 +145,7 @@ func antiByte(bt uint8) uint8 {
 	return 0
 }
 
-// 计算哈希价值
+// Calculate hash value
 
 func CalculateHashWorth(hash []byte) *big.Int {
 	bigbytes := []byte{0, 0, 0}
@@ -174,7 +174,7 @@ func CalculateHashWorth_old_2022_02_08(hash []byte) *big.Int {
 	//return targetHashWorth
 }
 
-// 计算难度价值
+// Calculate difficulty value
 
 func CalculateDifficultyWorth(diffnum uint32) *big.Int {
 	diffhx := DifficultyUint32ToHashForAntimatter(diffnum)
@@ -189,7 +189,7 @@ func CalculateDifficultyWorth_old_2022_02_08(diffnum uint32) *big.Int {
 	//return targetHashWorth
 }
 
-// 计算哈希价值
+// Calculate hash value
 func CalculateHashWorth_old(hash []byte) *big.Int {
 	mulnum := big.NewInt(2)
 	worth := big.NewInt(2)
@@ -208,7 +208,7 @@ func CalculateHashWorth_old(hash []byte) *big.Int {
 	return worth
 }
 
-// 反物质哈希
+// Antimatter hash
 func antimatterHash_old(hx []byte) []byte {
 
 	prefixzorenum := 0
@@ -224,7 +224,7 @@ func antimatterHash_old(hx []byte) []byte {
 	}
 	copy(basevalbts[1:], hx[cpidx:])
 	newbasenum := 16777215 - binary.BigEndian.Uint32(basevalbts) // 反记
-	// 新值
+	// New value
 	newbasenumbts := []byte{0, 0, 0, 0}
 	binary.BigEndian.PutUint32(newbasenumbts, newbasenum)
 	// hash
@@ -240,7 +240,7 @@ func antimatterHash_old2(hx []byte) []byte {
 		if hx[i] == 0 {
 			tar = append(tar, 255)
 		} else if hx[i] == 255 {
-			break // 结束
+			break // end
 		} else {
 			prx := []byte{255 - hx[i]}
 			tar = append(prx, tar...)
@@ -256,7 +256,7 @@ func antimatterHash(hx []byte) []byte {
 	size := len(hx)
 	zorenum := 1
 	basenum := make([]byte, 0)
-	// 第一步：拆解
+	// Step 1: disassembly
 	for i := 0; i < size; i++ {
 		if hx[i] == 0 {
 			zorenum++
@@ -273,7 +273,7 @@ func antimatterHash(hx []byte) []byte {
 	}
 	sbxzore := bytes.Repeat([]byte{0}, zorenum)
 	//fmt.Println(basenum, zorenum, sbxzore)
-	// 第二步 合并
+	// Step 2 merge
 	for x := 0; x < len(sbxzore) && x < len(basenum); x++ {
 		sbxzore[x] = basenum[x]
 	}
@@ -282,7 +282,7 @@ func antimatterHash(hx []byte) []byte {
 			sbxzore[0] = 1
 		}
 	}
-	// 返回
+	// return
 	return sbxzore
 
 }

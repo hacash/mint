@@ -10,17 +10,17 @@ func (bc *BlockChain) RollbackToBlockHeight(targetblockheight uint64) (uint64, e
 
 	fmt.Print("[BlockChain] Rollback to block height: ", targetblockheight, "... \n")
 
-	// 依次读取区块，并插入新状态
+	// Read blocks in sequence and insert new status
 	fmt.Print("[Database] Replay the block (NOT resynchronized), closing halfway will result in data corruption, Please wait and do not close the program...\n[Database] Checking block height:          0")
 
-	// 插入锁定，防止重放期间有新区块到来破坏数据
+	// Insert lock to prevent new blocks from damaging data during playback
 	bc.insertLock.Lock()
 	defer bc.insertLock.Unlock()
 
-	// 关闭旧的
+	// Close old
 	bc.chainstate.Close()
 
-	// 重命名目录
+	// rename directory
 	olddir := path.Join(path.Dir(bc.config.Datadir), "rbnk")
 	e0 := os.RemoveAll(olddir)
 	if e0 != nil {
@@ -52,7 +52,7 @@ func (bc *BlockChain) RollbackToBlockHeight(targetblockheight uint64) (uint64, e
 
 }
 
-// 旧版
+// Old edition
 /*
 func (bc *BlockChain) RollbackToBlockHeightOld(targetblockheight uint64) (uint64, error) {
 

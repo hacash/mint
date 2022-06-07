@@ -42,7 +42,7 @@ func (bc *BlockChain) ValidateTransactionForTxPool(newtx interfaces.Transaction)
 	if e2 != nil {
 		return e2
 	}
-	newTxState.SetInTxPool(true)        // 标记是矿池状态
+	newTxState.SetInTxPool(true)        // Mark is pool status
 	defer newTxState.DestoryTemporary() // clean data
 	// validate
 	newTxState.SetPendingBlockHeight(lastestBlock.GetHeight() + 1)

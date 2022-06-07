@@ -39,7 +39,7 @@ type BlockChain struct {
 func NewBlockChain(config *BlockChainConfig) (*BlockChain, error) {
 
 	cscnf := chainstatev2.NewChainStateConfig(config.cnffile)
-	// 是否为数据库重建模式
+	// Database rebuild mode
 	cscnf.DatabaseVersionRebuildMode = config.DatabaseVersionRebuildMode
 	csobject, e1 := chainstatev2.NewChainState(cscnf)
 	if e1 != nil {
@@ -71,7 +71,7 @@ func NewBlockChain(config *BlockChainConfig) (*BlockChain, error) {
 	return blockchain, nil
 }
 
-// 替换自己
+// Replace yourself
 func (bc *BlockChain) ReplaceChainstate(new *BlockChain) {
 	bc.config = new.config
 	bc.chainstate = new.chainstate
@@ -146,13 +146,13 @@ func (bc *BlockChain) GetChainEngineKernel() interfaces.ChainEngine {
 func (bc *BlockChain) SetChainEngineKernel(engine interfaces.ChainEngine) {
 }
 
-// 最新的区块（已确认的，和未成熟的）
+// Latest blocks (confirmed and immature)
 func (bc *BlockChain) LatestBlock() (interfaces.BlockHeadMetaRead, interfaces.BlockHeadMetaRead, error) {
 	blk, e := bc.chainstate.ReadLastestBlockHeadMetaForRead()
 	return blk, blk, e
 }
 
-// 最新的区块钻石
+// Latest block diamonds
 func (bc *BlockChain) LatestDiamond() (*stores.DiamondSmelt, error) {
 	return bc.chainstate.ReadLastestDiamond()
 }

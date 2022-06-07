@@ -17,7 +17,7 @@ func Test_t1(t *testing.T) {
 
 }
 
-// 比特币抵押借贷数据
+// Bitcoin mortgage loan data
 func Test_t2(t *testing.T) {
 
 	var ttp float64 = 0
@@ -29,20 +29,20 @@ func Test_t2(t *testing.T) {
 	fmt.Printf("|---|---|---|---|---|\n")
 
 	for {
-		// 计算可借出数量
+		// Calculate lendable quantity
 		loanhac, predeshac := CalculationOfInterestBitcoinMortgageLoanAmount(ttp)
 
-		// 实际得到
+		// Actually obtained
 		realgot := loanhac - predeshac
 
-		// 实际年利率 %
+		// Effective annual interest rate%
 		yearrate := predeshac / realgot * 100
 
-		// 统计
+		// Statistics
 		tthacount += realgot
 		ttdesc += predeshac
 
-		// 数值打印
+		// Numeric printing
 		fmt.Printf("|%.2f%% | %0.2f | %0.2f | %0.2f | %0.2f%%|\n", ttp, loanhac, predeshac, realgot, yearrate)
 		if ttp < 11 {
 			ttp += 0.5

@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	ImmatureBlockMaxLength   = 4 // 最多允许四个不成熟的区块
+	ImmatureBlockMaxLength   = 4 // Up to four immature blocks are allowed
 	block_time_format_layout = "01/02 15:04:05"
 )
 
@@ -74,7 +74,7 @@ func NewChainKernel(cnf *ChainKernelConfig) (*ChainKernel, error) {
 		return nil, e
 	}
 
-	// 创建 peadding 状态
+	// Create Peading status
 	last, e := immutable.ImmutableStatusRead()
 	if e != nil {
 		immutable.Close()
@@ -87,7 +87,7 @@ func NewChainKernel(cnf *ChainKernelConfig) (*ChainKernel, error) {
 		return nil, e
 	}
 
-	// 区块储存
+	// Block Storage 
 	immutable.SetBlockStoreObj(blockstore)
 
 	ins := &ChainKernel{
@@ -101,7 +101,7 @@ func NewChainKernel(cnf *ChainKernelConfig) (*ChainKernel, error) {
 		insertLock:               &sync.RWMutex{},
 	}
 
-	// 重建不成熟的区块状态，返回最新区块值
+	// Rebuild immature block status and return the latest block value
 	ins.stateCurrent, e = ins.BuildImmatureBlockStates()
 	if e != nil {
 		return nil, e
@@ -131,7 +131,7 @@ func (bc *ChainKernel) Start() error {
 func (bc *ChainKernel) Close() error {
 	bc.insertLock.Lock()
 	defer bc.insertLock.Unlock()
-	// 关闭
+	// close
 	bc.stateImmutable.Close()
 	bc.blockstore.Close()
 	bc.stateCurrent.Destory()

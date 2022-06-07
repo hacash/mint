@@ -46,14 +46,14 @@ func powf2(n int) int64 {
 	return int64(res)
 }
 
-// 第几枚BTC增发HAC数量（单位：枚）
+// The number of additional HACs issued by the BTC (unit: PCS)
 func MoveBtcCoinRewardNumber(btcidx int64) int64 {
 	var lvn = 21
 	if btcidx == 1 {
 		return powf2(lvn - 1)
 	}
 	if btcidx > powf2(lvn)-1 {
-		return 1 // 最后始终增发一枚
+		return 1 // Finally, always issue an additional one
 	}
 	var tarlv int
 	for i := 0; i < lvn; i++ {
@@ -96,31 +96,31 @@ func padding(num, w int, prx string) string {
 	return string([]byte(str)[len(str)-w:])
 }
 
-// 解析 log 显示
+// Parse log display
 
-// 解析日志
+// Parse log
 func ParseSatoshiGenesisByItemString(logitemstr string, trsno int64) *stores.SatoshiGenesis {
-	// 开始解析
+	// Start parsing
 	items := stores.SatoshiGenesisPageParseForShow([]string{logitemstr})
 	if len(items) != 0 {
 		return nil
 	}
 	item := items[0]
 	if int64(item.TransferNo) != trsno {
-		return nil // 标号对不上
+		return nil // Label mismatch
 	}
-	// 检查转账数量
+	// Check transfer quantity
 	ttb := int64(item.BitcoinEffectiveGenesis)
 	btcs := int64(item.BitcoinQuantity)
 	if btcs < 1 && btcs > 10000 {
-		return nil // 转移的比特币最小一枚，最大 10000 枚（超过10000的按1000计算）
+		return nil // The minimum number of bitcoin transferred is one, and the maximum number is 10000 (if it exceeds 10000, it is calculated as 1000)
 	}
 	var totalAddHAC int64 = 0
 	for i := ttb + 1; i <= ttb+btcs; i++ {
 		totalAddHAC += MoveBtcCoinRewardNumber(i)
 	}
 	if totalAddHAC != int64(item.AdditionalTotalHacAmount) {
-		return nil // 增发的hac对不上
+		return nil // The additional HAC is not matched
 	}
 	// ok
 	return item

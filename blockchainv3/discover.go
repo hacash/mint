@@ -15,7 +15,7 @@ func (bc *ChainKernel) DiscoverNewBlockToInsert(newblock interfaces.Block, origi
 	defer bc.insertLock.Unlock()
 
 	if newblock.GetHeight()%321 == 0 {
-		runtime.GC() // 每 321个区块启动一次垃圾回收
+		runtime.GC() // Start garbage collection every 321 blocks
 	}
 
 	/*
@@ -24,20 +24,20 @@ func (bc *ChainKernel) DiscoverNewBlockToInsert(newblock interfaces.Block, origi
 
 	oldImmutablePending := bc.stateImmutable.GetPending()
 
-	// 插入新的区块
+	// Insert new block
 
-	// 判断是否可以插入
+	// Judge whether it can be inserted
 	prevhash := newblock.GetPrevHash()
 	basestate, e := bc.stateImmutable.SearchBaseStateByBlockHashObj(prevhash)
 	if e != nil {
 		return nil, nil, e
 	}
 	if basestate == nil {
-		// 未找到上级区块
+		// Parent block not found
 		return nil, nil, fmt.Errorf("cannot find prev block %s", prevhash.ToHex())
 	}
 
-	// 尝试插入
+	// Try inserting
 	//fmt.Printf("insert block - %d ... ", newblock.GetHeight())
 	newstate, e := bc.forkStateWithAppendBlock(basestate, newblock)
 	if e != nil {
@@ -49,22 +49,22 @@ func (bc *ChainKernel) DiscoverNewBlockToInsert(newblock interfaces.Block, origi
 	var isMoveComfirm bool = false
 	var doComfirmState = bc.stateImmutable
 	if newblock.GetHeight()-oldImmutablePending.GetPendingBlockHeight() > ImmatureBlockMaxLength {
-		// 移动确认
+		// Move confirmation
 		var comfirmState = newstate
 		for i := 0; i < ImmatureBlockMaxLength; i++ {
 			comfirmState = comfirmState.GetParentObj()
 		}
-		doComfirmState = comfirmState // 前移确认
+		doComfirmState = comfirmState // Forward confirmation
 		isMoveComfirm = true
 	}
 
-	// 插入成功，更新状态表
+	// Insert succeeded, update status table
 	immutableStatus, e := bc.stateImmutable.ImmutableStatusRead()
 	if e != nil {
 		return nil, nil, e
 	}
 	doComfirmStateImmutable := doComfirmState
-	// 更新成熟的区块头以及不成熟的区块哈希表
+	// Update mature block headers and immature block hash tables
 	immatureBlockHashs, e := doComfirmStateImmutable.SeekImmatureBlockHashs()
 	if e != nil {
 		return nil, nil, e
@@ -73,7 +73,7 @@ func (bc *ChainKernel) DiscoverNewBlockToInsert(newblock interfaces.Block, origi
 	immutableStatus.SetImmutableBlockHeadMeta(newImmutablePending.GetPendingBlockHead())
 	immutableStatus.SetImmatureBlockHashList(immatureBlockHashs)
 
-	// 区块保存进磁盘
+	// Save blocks to disk
 	e = doComfirmState.BlockStore().SaveBlock(newblock)
 	if e != nil {
 		return nil, nil, e
@@ -87,38 +87,38 @@ func (bc *ChainKernel) DiscoverNewBlockToInsert(newblock interfaces.Block, origi
 	if isChangeCurrentState {
 		immutableStatus.SetLatestBlockHash(newblock.Hash())
 		if false == newblock.GetPrevHash().Equal(curPdptr.GetPendingBlockHash()) {
-			isChangeCurrentForkHead = true // prev hash不一致，切换了分叉头
+			isChangeCurrentForkHead = true // The prev hash is inconsistent and the fork head is switched
 			//fmt.Println("prev hash 不一致，切换了分叉头")
 		} else {
 			//fmt.Println("prev hash 一致，只更新一个编号")
 		}
 	}
 
-	// 保存状态
+	// Save status
 	e = doComfirmState.ImmutableStatusSet(immutableStatus)
 	if e != nil {
 		return nil, nil, e
 	}
 
-	// 状态保存进磁盘
+	// Save status to disk
 	if isMoveComfirm {
 		newComfirmImmutableState, e := doComfirmState.ImmutableWriteToDiskObj()
 		if e != nil {
-			return nil, nil, e // 写入磁盘出错
+			return nil, nil, e // Error writing to disk
 		}
-		// 释放旧的状态
-		bc.stateImmutable.Destory() // 内存
+		// Release old state
+		bc.stateImmutable.Destory() // Memory
 		bc.stateImmutable = newComfirmImmutableState
 	}
 
-	// 判断是否切换 current 状态
+	// Judge whether to switch current status
 	var newCurrentStateForReturn = bc.stateCurrent
 	if isChangeCurrentState {
-		// 更新区块指针
+		// Update block pointer
 		var upPtrState = newstate
 		upNUmPtrMax := 1 // 当为同步区块或没有改变fork指针时，只需要更新最后一个区块的指针
 		if isChangeCurrentForkHead {
-			// 切换了分叉头，改变状态路径历史5个区块的指向高度
+			// Switch the fork head and change the pointing height of five blocks in the history of the state path
 			upNUmPtrMax = ImmatureBlockMaxLength + 1
 		}
 		for i := 0; i < upNUmPtrMax; i++ {
@@ -135,22 +135,22 @@ func (bc *ChainKernel) DiscoverNewBlockToInsert(newblock interfaces.Block, origi
 			upPtrState = upPtrState.GetParentObj()
 		}
 
-		// 更新最新状态指针
+		// Update latest status pointer
 		newCurrentStateForReturn = newstate
 		bc.stateCurrent = newstate
 
 		// feed
 		if isChangeCurrentForkHead || false == blockOriginIsSync {
-			// 发送新区快到达通知
+			// Send new area fast arrival notice
 			bc.validatedBlockInsertFeed.Send(newblock)
 			// send feed
 			if diamondCreate != nil {
-				// 新确认了钻石
+				// Newly confirmed diamond
 				bc.diamondCreateFeed.Send(diamondCreate)
 			}
 		}
 	}
 
-	// 成功返回
+	// Successful return
 	return doComfirmState, newCurrentStateForReturn, nil
 }

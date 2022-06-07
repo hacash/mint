@@ -10,7 +10,7 @@ type BlockChainConfig struct {
 	Datadir          string
 	RollbackToHeight uint64
 
-	// 数据库重建模式
+	// Database rebuild mode
 	DatabaseVersionRebuildMode bool
 }
 

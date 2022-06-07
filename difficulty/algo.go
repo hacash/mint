@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// 计算下一阶段区块难度
+// Calculate the block difficulty of the next stage
 func CalculateNextTargetDifficulty_v1(
 	currentBits uint32,
 	currentHeight uint64,
@@ -20,19 +20,19 @@ func CalculateNextTargetDifficulty_v1(
 ) (*big.Int, uint32) {
 
 	powTargetTimespan := time.Second * time.Duration(eachblocktime*changeblocknum) // 五分钟一个快
-	// 如果新区块height不是 288 的整数倍，则不需要更新，仍然是最后一个区块的 bits
+	// If the height of the new block is not an integer multiple of 288, it does not need to be updated. It is still the bits of the last block
 	if currentHeight%changeblocknum != 0 {
 		return Uint32ToBig_v1(currentBits), currentBits
 	}
 	prev2016blockTimestamp := time.Unix(int64(prevTimestamp), 0)
 	lastBlockTimestamp := time.Unix(int64(lastTimestamp), 0)
-	// 计算 288 个区块出块时间
+	// Calculate the block out time of 288 blocks
 	actualTimespan := lastBlockTimestamp.Sub(prev2016blockTimestamp)
 	if actualTimespan < powTargetTimespan/4 {
 		// 如果小于1/4天，则按1/4天计算
 		actualTimespan = powTargetTimespan / 4
 	} else if actualTimespan > powTargetTimespan*4 {
-		// 如果超过4天，则按4天计算
+		// If it exceeds 4 days, it shall be calculated as 4 days
 		actualTimespan = powTargetTimespan * 4
 	}
 
@@ -92,7 +92,7 @@ func Uint32ToHash_v1(number uint32) []byte {
 func BigToHash256_v1(bignum *big.Int) []byte {
 	bigbytes := bignum.Bytes()
 	if len(bigbytes) > 32 {
-		bigbytes = bytes.Repeat([]byte{255}, 32) // 超出时取最大值
+		bigbytes = bytes.Repeat([]byte{255}, 32) // Maximum value when exceeding
 	}
 	buf := bytes.NewBuffer(bytes.Repeat([]byte{0}, 32-len(bigbytes)))
 	buf.Write(bigbytes)
@@ -130,7 +130,7 @@ func Hash256ToUint32_v1(hash []byte) uint32 {
 	return binary.BigEndian.Uint32(results)
 }
 
-// 256进制变2进制
+// 256 to 2
 func BitsToBytes(bits []byte) []byte {
 	retults := make([]byte, 0, len(bits)/8)
 	for i := 0; i < len(bits)/8; i++ {
@@ -139,7 +139,7 @@ func BitsToBytes(bits []byte) []byte {
 	return retults
 }
 
-// 256进制变2进制
+// 256 to 2
 func BytesToBits(stuff []byte) []byte {
 	results := make([]byte, 0, 32*8)
 	for _, v := range stuff {
@@ -148,7 +148,7 @@ func BytesToBits(stuff []byte) []byte {
 	return results
 }
 
-// 256进制变2进制
+// 256 to 2
 func BitsToByte(bits []byte) byte {
 	b := uint8(0)
 	b += uint8(1) * bits[7]
