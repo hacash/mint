@@ -48,7 +48,7 @@ func Test_t1(t *testing.T) {
 
 		copy(basehx, []byte{uint8(i)})
 		//fmt.Println( basehx, BytesToBits(basehx) )
-		fmt.Println(basehx[0:4], BytesToBits(basehx)[0:16], CalculateHashWorth(basehx))
+		fmt.Println(basehx[0:4], BytesToBits(basehx)[0:16], CalculateHashWorthForTest(basehx))
 
 	}
 }
@@ -77,7 +77,7 @@ func Test_t2(t *testing.T) {
 		worth := DifficultyHashToBig(antimatterHash(hx))
 		fmt.Println(v, antimatterHash(hx), worth, ConvertPowPowerToShowFormat(worth))
 		//fmt.Print("\n-------------------\n\n")
-		//fmt.Println( hx, BytesToBits(hx), CalculateHashWorth(hx), CalculateHashWorthV2(hx) )
+		//fmt.Println( hx, BytesToBits(hx), CalculateHashWorthForTest(hx), CalculateHashWorthV2(hx) )
 		//fmt.Println(v, antimatterHash_old2(hx), DifficultyHashToBig(antimatterHash_old2(hx)).String())
 		//fmt.Println(v, antimatterHash(hx),DifficultyHashToBig(antimatterHash(hx)).String())
 	}
@@ -142,7 +142,7 @@ func Test_t4(t *testing.T) {
 	}
 
 	for _, hx := range hxs {
-		fmt.Println(hex.EncodeToString(hx), CalculateHashWorth(hx))
+		fmt.Println(hex.EncodeToString(hx), CalculateHashWorthForTest(hx))
 	}
 
 }

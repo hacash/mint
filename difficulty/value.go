@@ -3,7 +3,9 @@ package difficulty
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
+	"github.com/hacash/x16rs"
 	"math/big"
 )
 
@@ -28,16 +30,17 @@ func pow(value *big.Int, x int) *big.Int {
 }
 
 // Convert to hash for calculation force display
+/*
 func ConvertDifficultyToRateShow(diffnum uint32, usetimesec int64) string {
 	hxworth := CalculateDifficultyWorth(diffnum)
 	hashrate := new(big.Int).Div(hxworth, big.NewInt(usetimesec))
 	hashrateshow := ConvertPowPowerToShowFormat(hashrate)
 	return hashrateshow
 }
-
+*/
 // Convert to hash for calculation force display
-func ConvertHashToRateShow(hx []byte, usetimesec int64) string {
-	hxworth := CalculateHashWorth(hx)
+func ConvertHashToRateShow(blkhei uint64, hx []byte, usetimesec int64) string {
+	hxworth := CalculateHashWorthByHeight(blkhei, hx)
 	hashrate := new(big.Int).Div(hxworth, big.NewInt(usetimesec))
 	hashrateshow := ConvertPowPowerToShowFormat(hashrate)
 	return hashrateshow
@@ -147,7 +150,28 @@ func antiByte(bt uint8) uint8 {
 
 // Calculate hash value
 
-func CalculateHashWorth(hash []byte) *big.Int {
+func CalculateHashWorthForTest(hash []byte) *big.Int {
+	return CalculateHashWorthByHeight(1, hash)
+}
+
+func CalculateHashWorthByHeight(blkhei uint64, hash []byte) *big.Int {
+	//var bigdiff = HashToBig(9999999, hash)
+	var hxrepeat = x16rs.HashRepeatForBlockHeight(blkhei)
+
+	var baseThash, _ = hex.DecodeString("00000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
+	diffhash := hash[0:32]
+
+	var T1 = big.NewFloat(0).SetInt(big.NewInt(0).SetBytes(baseThash))
+	var T = big.NewFloat(0).SetInt(big.NewInt(0).SetBytes(diffhash))
+	var D = big.NewFloat(0).Quo(T1, T)
+	var W = big.NewFloat(0).Mul(D, big.NewFloat(4294967296))
+	W = big.NewFloat(0).Mul(W, big.NewFloat(1+float64(hxrepeat)))
+
+	var retInt, _ = W.Int(nil)
+	return retInt
+}
+
+func CalculateHashWorth_old_2022_9_9(hash []byte) *big.Int {
 	bigbytes := []byte{0, 0, 0}
 	zore := 0
 	for i := 0; i < 29; i++ {
@@ -176,9 +200,19 @@ func CalculateHashWorth_old_2022_02_08(hash []byte) *big.Int {
 
 // Calculate difficulty value
 
+func CalculateDifficultyWorthByHeight(blkhei uint64, diffnum uint32) *big.Int {
+	diffhx := DifficultyUint32ToHashForAntimatter(diffnum)
+	return CalculateHashWorthByHeight(blkhei, diffhx)
+}
+
+/*
 func CalculateDifficultyWorth(diffnum uint32) *big.Int {
 	diffhx := DifficultyUint32ToHashForAntimatter(diffnum)
-	return CalculateHashWorth(diffhx)
+	return CalculateHashWorthForTest(diffhx)
+}
+func CalculateDifficultyWorth_old_2022_9_9(diffnum uint32) *big.Int {
+	diffhx := DifficultyUint32ToHashForAntimatter(diffnum)
+	return CalculateHashWorthForTest(diffhx)
 }
 func CalculateDifficultyWorth_old_2022_02_08(diffnum uint32) *big.Int {
 	diffhx := DifficultyUint32ToHashForAntimatter(diffnum)
@@ -188,7 +222,7 @@ func CalculateDifficultyWorth_old_2022_02_08(diffnum uint32) *big.Int {
 	//targetHashWorth := new(big.Int).Mul(worth, new(big.Int).SetUint64(uint64(repeat)))
 	//return targetHashWorth
 }
-
+*/
 // Calculate hash value
 func CalculateHashWorth_old(hash []byte) *big.Int {
 	mulnum := big.NewInt(2)
