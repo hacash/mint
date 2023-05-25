@@ -40,6 +40,10 @@ func ConvertDifficultyToRateShow(diffnum uint32, usetimesec int64) string {
 */
 // Convert to hash for calculation force display
 func ConvertHashToRateShow(blkhei uint64, hx []byte, usetimesec int64) string {
+	if usetimesec < 1 {
+		usetimesec = 1
+	}
+	//fmt.Println(blkhei, hex.EncodeToString(hx), usetimesec)
 	hxworth := CalculateHashWorthByHeight(blkhei, hx)
 	hashrate := new(big.Int).Div(hxworth, big.NewInt(usetimesec))
 	hashrateshow := ConvertPowPowerToShowFormat(hashrate)
@@ -104,7 +108,7 @@ func ConvertPowPowerToShowFormat_old(value *big.Int) string {
 
 }
 
-///////////////////////////////////////////
+// /////////////////////////////////////////
 func antiByte(bt uint8) uint8 {
 	var antiByteSplitNums = [][]uint8{
 		{255, 0},
