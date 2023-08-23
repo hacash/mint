@@ -22,7 +22,6 @@ import (
 
 // test
 
-export GOPATH=/media/yangjie/500GB/hacash/go
 cd mint/run/btcmovelogs
 go run main.go
 
