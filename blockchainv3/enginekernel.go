@@ -8,6 +8,7 @@ import (
 	"github.com/hacash/core/sys"
 	"github.com/hacash/mint/event"
 	"sync"
+	"time"
 )
 
 const (
@@ -51,6 +52,8 @@ type ChainKernel struct {
 	stateImmutable *chainstatev3.ChainState
 	stateCurrent   *chainstatev3.ChainState
 
+	recentArrivedBlocks sync.Map
+
 	blockstore *blockstorev3.BlockStore
 
 	// feed
@@ -87,7 +90,7 @@ func NewChainKernel(cnf *ChainKernelConfig) (*ChainKernel, error) {
 		return nil, e
 	}
 
-	// Block Storage 
+	// Block Storage
 	immutable.SetBlockStoreObj(blockstore)
 
 	ins := &ChainKernel{
@@ -96,6 +99,7 @@ func NewChainKernel(cnf *ChainKernelConfig) (*ChainKernel, error) {
 		stateCurrent:             nil,
 		stateImmutable:           immutable,
 		blockstore:               blockstore,
+		recentArrivedBlocks:      sync.Map{},
 		validatedBlockInsertFeed: &event.Feed{},
 		diamondCreateFeed:        &event.Feed{},
 		insertLock:               &sync.RWMutex{},
@@ -146,8 +150,45 @@ func (bc *ChainKernel) InsertBlock(newblk interfaces.Block, origin string) error
 	if origin != "" {
 		newblk.SetOriginMark(origin)
 	}
+	newblk.SetArrivedTime(time.Now().Unix())
+	// record in recentArrivedBlocks
+	go bc.recordToRecentArrivedBlocks(newblk)
+	// try insert to blockchain
 	_, _, e := bc.DiscoverNewBlockToInsert(newblk, origin)
 	return e
+}
+
+func (bc *ChainKernel) recordToRecentArrivedBlocks(newblk interfaces.Block) {
+	hx := newblk.Hash()
+	delhei := int64(newblk.GetHeight()) - 8
+	bc.recentArrivedBlocks.Store(string(hx), newblk)
+	if delhei <= 0 {
+		return
+	}
+	// delete expire block
+	bc.recentArrivedBlocks.Range(func(key, value any) bool {
+		var isdel = false
+		var blk, ok = value.(interfaces.Block)
+		if !ok {
+			isdel = true
+		} else if int64(blk.GetHeight()) <= delhei {
+			isdel = true
+		}
+		if isdel {
+			// delete expire
+			bc.recentArrivedBlocks.Delete(key)
+		}
+		return true
+	})
+}
+
+func (bc *ChainKernel) GetRecentArrivedBlocks() []interfaces.Block {
+	var list = []interfaces.Block{}
+	bc.recentArrivedBlocks.Range(func(key, value any) bool {
+		list = append(list, value.(interfaces.Block))
+		return true
+	})
+	return list
 }
 
 func (b ChainKernel) StateRead() interfaces.ChainStateOperationRead {

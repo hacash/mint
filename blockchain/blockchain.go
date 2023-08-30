@@ -143,6 +143,10 @@ func (bc *BlockChain) GetChainEngineKernel() interfaces.ChainEngine {
 	return bc
 }
 
+func (bc *BlockChain) GetRecentArrivedBlocks() []interfaces.Block {
+	return []interfaces.Block{}
+}
+
 func (bc *BlockChain) SetChainEngineKernel(engine interfaces.ChainEngine) {
 }
 
