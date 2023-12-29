@@ -9,6 +9,9 @@ import (
 )
 
 func (bc *BlockChain) ValidateTransactionForTxPool(newtx interfaces.Transaction) error {
+
+	panic("WriteinChainState be deprecated")
+
 	newtxhash := newtx.Hash()
 	txhxhex := newtxhash.ToHex()
 	exist, e0 := bc.chainstate.CheckTxHash(newtxhash)

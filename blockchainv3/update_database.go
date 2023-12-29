@@ -22,6 +22,12 @@ func updateDatabaseReturnBlockChain(ini *sys.Inicnf, olddatadir string, maxtarhe
 	}
 	defer oldblockDB.Close()
 
+	lastblkhei, e := oldblockDB.ReadLastBlockHeight()
+	if e != nil {
+		return nil, fmt.Errorf("ReadLastBlockHeight Error: %s", e.Error())
+		// Error occurred, return
+	}
+
 	// Create new status
 	bccnf := NewChainKernelConfig(ini)
 	chainCore, e1 := NewChainKernel(bccnf)
@@ -97,12 +103,17 @@ func updateDatabaseReturnBlockChain(ini *sys.Inicnf, olddatadir string, maxtarhe
 	}()
 
 	// Write block data
+	var showLoadPersent = func(curhei uint64) {
+		var per = float64(curhei) / float64(lastblkhei) * 100
+		fmt.Printf("\r%10d/%d (%.2f%%)", curhei, lastblkhei, per)
+	}
 	go func() {
 		readblockhei := uint64(1)
 		for {
 			blk := <-updateBlockCh
 			if blk == nil {
-				fmt.Printf("\b\b\b\b\b\b\b\b\b\b%10d", readblockhei)
+				//    509228(22.38%)
+				showLoadPersent(readblockhei)
 				break // complete
 			}
 
@@ -117,7 +128,7 @@ func updateDatabaseReturnBlockChain(ini *sys.Inicnf, olddatadir string, maxtarhe
 			// Print
 			if readblockhei%1000 == 0 {
 				//fmt.Printf("%d", readblockhei)
-				fmt.Printf("\b\b\b\b\b\b\b\b\b\b%10d", readblockhei)
+				showLoadPersent(readblockhei)
 			}
 			//fmt.Println("6")
 			// next block
@@ -155,7 +166,7 @@ func CheckAndUpdateBlockchainDatabaseVersion(ini *sys.Inicnf) error {
 	}
 
 	// Read blocks in sequence and insert new status
-	fmt.Printf("[Database] Upgrade blockchain database version v%d to v%d, block data is NOT resynchronized, Please wait and do not close the program...\n[Database] Checking block height:          0", oldversion, curversion)
+	fmt.Printf("[Database] Upgrade blockchain database version v%d to v%d, block data is NOT resynchronized, Please wait and do not close the program...\n[Database] Checking block height:\n", oldversion, curversion)
 
 	_, e := updateDatabaseReturnBlockChain(ini, olddir, 0, true)
 	if e != nil {
