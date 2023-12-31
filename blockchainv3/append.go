@@ -8,6 +8,7 @@ import (
 	"github.com/hacash/core/blocks"
 	"github.com/hacash/core/fields"
 	"github.com/hacash/core/interfaces"
+	"github.com/hacash/core/sys"
 	"github.com/hacash/core/transactions"
 	"github.com/hacash/mint"
 	"github.com/hacash/mint/coinbase"
@@ -101,7 +102,8 @@ func (bc *ChainKernel) forkStateWithAppendBlock(baseState *chainstatev3.ChainSta
 	if e5 != nil {
 		return nil, e5
 	}
-	if difficulty.CheckHashDifficultySatisfy(newBlockHash, targetDiffHash) == false {
+	if sys.NotCheckBlockDifficultyForMiner == false &&
+		difficulty.CheckHashDifficultySatisfy(newBlockHash, targetDiffHash) == false {
 		return nil, fmt.Errorf(errmsgprifix+"Maximum accepted hash diffculty is %s but got %s.", hex.EncodeToString(targetDiffHash), newBlockHashHexStr)
 	}
 	// Check and verify all transaction signatures
