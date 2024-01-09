@@ -116,12 +116,12 @@ func (bc *ChainKernel) DiscoverNewBlockToInsert(newblock interfaces.Block, origi
 	if isChangeCurrentState {
 		// Update block pointer
 		var upPtrState = newstate
-		upNUmPtrMax := 1 // 当为同步区块或没有改变fork指针时，只需要更新最后一个区块的指针
+		upNumPtrMax := 1 // 当为同步区块或没有改变fork指针时，只需要更新最后一个区块的指针
 		if isChangeCurrentForkHead {
 			// Switch the fork head and change the pointing height of five blocks in the history of the state path
-			upNUmPtrMax = ImmatureBlockMaxLength + 1
+			upNumPtrMax = ImmatureBlockMaxLength + 1
 		}
-		for i := 0; i < upNUmPtrMax; i++ {
+		for i := 0; i < upNumPtrMax; i++ {
 			if upPtrState == nil {
 				break
 			}
