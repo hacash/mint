@@ -24,7 +24,8 @@ func updateDatabaseReturnBlockChain(ini *sys.Inicnf, olddatadir string, maxtarhe
 
 	lastblkhei, e := oldblockDB.ReadLastBlockHeight()
 	if e != nil {
-		return nil, fmt.Errorf("ReadLastBlockHeight Error: %s", e.Error())
+		lastblkhei = 516000 // fix notfind error
+		//return nil, fmt.Errorf("ReadLastBlockHeight Error: %s", e.Error())
 		// Error occurred, return
 	}
 
