@@ -7,8 +7,7 @@ import (
 )
 
 /**
- * 发现新区块并尝试插入区块链
- * 返回值：插入新区块的状态，当前使用的最新的状态（切换后的），错误
+ * discover new block
  */
 func (bc *ChainKernel) DiscoverNewBlockToInsert(newblock interfaces.Block, origin string) (interfaces.ChainState, interfaces.ChainState, error) {
 	bc.insertLock.Lock()

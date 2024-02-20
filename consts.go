@@ -7,7 +7,7 @@ var (
 	AdjustTargetDifficultyNumberOfBlocks uint64 = 288 // about one day
 	EachBlockRequiredTargetTime          uint64 = 300 // 60 * 5 , about 5 min
 
-	MinTransactionFeePurityOfOneByte uint64 = 10000 * 10000 * 10000 / 200 // = 5000000000:232 = 50铢 max 1844 67440737 09551615
-	// one simple trs bytes length = 2+21+10+5+21+10+2+33+64+2 = 170 ~ 200
+	MinTransactionFeePurity uint32 = 1666 // = 10000 / (168 / 32 + 1)
+	// one simple trs bytes length = 2+5+21+6+2+(21+10)+2+33+64+2 = 168
 
 )

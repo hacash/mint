@@ -37,7 +37,8 @@ func (bc *BlockChain) ValidateTransactionForTxPool(newtx interfaces.Transaction)
 		return fmt.Errorf("tx %s timestamp cannot more than now.", txhxhex)
 	}
 	// fee purity
-	if newtx.FeePurity() < mint.MinTransactionFeePurityOfOneByte {
+	//fmt.Println("newtx.FeePurity()", newtx.FeePurity())
+	if newtx.FeePurity() < mint.MinTransactionFeePurity {
 		return fmt.Errorf("tx %s handling fee is too low for miners to accept.", txhxhex)
 	}
 	// sign

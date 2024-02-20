@@ -52,7 +52,8 @@ type ChainKernel struct {
 	stateImmutable *chainstatev3.ChainState
 	stateCurrent   *chainstatev3.ChainState
 
-	recentArrivedBlocks sync.Map
+	recentArrivedBlocks    sync.Map
+	averageFeePurityCounts []uint32 // max len = 12
 
 	blockstore *blockstorev3.BlockStore
 
@@ -100,6 +101,7 @@ func NewChainKernel(cnf *ChainKernelConfig) (*ChainKernel, error) {
 		stateImmutable:           immutable,
 		blockstore:               blockstore,
 		recentArrivedBlocks:      sync.Map{},
+		averageFeePurityCounts:   []uint32{},
 		validatedBlockInsertFeed: &event.Feed{},
 		diamondCreateFeed:        &event.Feed{},
 		insertLock:               &sync.RWMutex{},

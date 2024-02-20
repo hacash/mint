@@ -147,6 +147,10 @@ func (bc *BlockChain) GetRecentArrivedBlocks() []interfaces.Block {
 	return []interfaces.Block{}
 }
 
+func (bc *BlockChain) GetLatestAverageFeePurity() uint32 {
+	panic(any("nevel call this!"))
+}
+
 func (bc *BlockChain) SetChainEngineKernel(engine interfaces.ChainEngine) {
 }
 

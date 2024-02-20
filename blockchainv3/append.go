@@ -192,6 +192,9 @@ func (bc *ChainKernel) forkStateWithAppendBlock(baseState *chainstatev3.ChainSta
 		}
 	*/
 
+	// deal fee purity
+	go bc.handleAverageFeePurityByNewBlock(newblock)
+
 	// return ok
 	return newBlockChainState, nil
 }
