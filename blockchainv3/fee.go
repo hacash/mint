@@ -2,24 +2,30 @@ package blockchainv3
 
 import (
 	"github.com/hacash/core/interfaces"
+	"github.com/hacash/mint"
 	"sync"
 )
 
 /**
  * unit: zhu
+ * return: > mint.MinTransactionFeePurity
  */
 func (bc *ChainKernel) GetLatestAverageFeePurity() uint32 {
 	var fpc = bc.averageFeePurityCounts
 	var num = len(fpc)
 	if num == 0 {
-		return 1
+		return mint.MinTransactionFeePurity
 	}
 	var ftt = uint64(0)
 	for i := 0; i < num; i++ {
 		ftt += uint64(fpc[i])
 	}
 	// ok
-	return uint32(ftt / uint64(num))
+	avgf := uint32(ftt / uint64(num))
+	if avgf < mint.MinTransactionFeePurity {
+		avgf = mint.MinTransactionFeePurity
+	}
+	return avgf
 }
 
 /**
