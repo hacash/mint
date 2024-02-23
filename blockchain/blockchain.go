@@ -143,6 +143,10 @@ func (bc *BlockChain) GetChainEngineKernel() interfaces.ChainEngine {
 	return bc
 }
 
+func (bc *BlockChain) SetConfirmTxIndexer(indexer interfaces.ConfirmTxIndexer) {
+	panic(any("nevel call this!"))
+}
+
 func (bc *BlockChain) GetRecentArrivedBlocks() []interfaces.Block {
 	return []interfaces.Block{}
 }

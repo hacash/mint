@@ -105,9 +105,12 @@ func (bc *ChainKernel) DiscoverNewBlockToInsert(newblock interfaces.Block, origi
 		if e != nil {
 			return nil, nil, e // Error writing to disk
 		}
+		// tx indexer
 		// Release old state
 		bc.stateImmutable.Destory() // Memory
 		bc.stateImmutable = newComfirmImmutableState
+		// indexer
+		go bc.execTxIndexer(doComfirmState.GetPendingBlockHash())
 	}
 
 	// Judge whether to switch current status

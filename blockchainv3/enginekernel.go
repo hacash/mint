@@ -57,6 +57,9 @@ type ChainKernel struct {
 
 	blockstore *blockstorev3.BlockStore
 
+	// indexer
+	txindexer interfaces.ConfirmTxIndexer
+
 	// feed
 	validatedBlockInsertFeed *event.Feed
 	diamondCreateFeed        *event.Feed
