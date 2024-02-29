@@ -39,7 +39,7 @@ func (bc *ChainKernel) execTxIndexer(blkhx fields.Hash) {
 	}
 	// loop tx
 	txs := block.GetTrsList()
-	//fmt.Printf("---- execTxIndexer 4 txs: %d ----\n", len(txs))
+	//fmt.Printf("---- execConfirmTxIndexer height %d txs: %d ----\n", block.GetHeight(), len(txs)-1)
 	if len(txs) <= 1 {
 		return // block empty
 	}

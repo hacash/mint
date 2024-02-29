@@ -133,7 +133,9 @@ func (b *ChainKernel) ChainStateIinitializeCall(stateinit func(interfaces.ChainS
  * interfaces
  */
 func (bc *ChainKernel) Start() error {
-	// do nothing
+	if bc.txindexer != nil {
+		bc.txindexer.Init()
+	}
 	return nil
 }
 
