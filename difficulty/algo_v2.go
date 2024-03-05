@@ -104,7 +104,7 @@ func DifficultyCalculateNextTarget_v2(
 	printInfo *string,
 ) ([]byte, *big.Int, uint32) {
 
-	powTargetTimespan := time.Second * time.Duration(eachblocktime*changeblocknum) // 一分钟一个快
+	powTargetTimespan := time.Second * time.Duration(eachblocktime*changeblocknum)
 	// If the height of the new block is not an integer multiple of 288, it does not need to be updated. It is still the bits of the last block
 	if currentHeight%changeblocknum != 0 {
 		currentBig := DifficultyUint32ToBig(currentBits)
@@ -115,7 +115,7 @@ func DifficultyCalculateNextTarget_v2(
 	// Calculate the block out time of 288 blocks
 	actualTimespan := lastBlockTimestamp.Sub(prev2016blockTimestamp)
 	if actualTimespan < powTargetTimespan/4 {
-		// 如果小于1/4天，则按1/4天计算
+		// If it is less than 1/4 day, it calculated as 1/4 day
 		actualTimespan = powTargetTimespan / 4
 	} else if actualTimespan > powTargetTimespan*4 {
 		// If it exceeds 4 days, it shall be calculated as 4 days
@@ -123,7 +123,7 @@ func DifficultyCalculateNextTarget_v2(
 	}
 
 	lastTarget := DifficultyUint32ToBig(currentBits)
-	// 计算公式： target = lastTarget * actualTime / expectTime
+	// formula: target = lastTarget * actualTime / expectTime
 	newTarget := lastTarget.Mul(lastTarget, big.NewInt(int64(actualTimespan.Seconds())))
 	newTarget = newTarget.Div(newTarget, big.NewInt(int64(powTargetTimespan.Seconds())))
 
@@ -212,7 +212,7 @@ func DifficultyHashToUint32(hash_byte []byte) uint32 {
 	//fmt.Println("\n--------------", hash, "-------------")
 	//fmt.Println("           byte:", len(hash_byte), hash_byte)
 
-	// HASH256 转 UINT32
+	// HASH256 to UINT32
 	//fmt.Println(hash_byte)
 	hash_bits := BytesToBits(hash_byte)
 	//fmt.Println(len(hash_bits), hash_bits)
