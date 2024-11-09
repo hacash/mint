@@ -14,10 +14,10 @@ func BlockCoinBaseRewardNumber(blockHeight uint64) uint8 {
 	tbn2 := uint64(10000 * 100)
 	spx1 := uint64(len(part1)) * tbn1
 	spx2 := uint64(len(part2))*tbn2 + spx1
-	if blockHeight <= spx1 {
+	if blockHeight < spx1 {
 		base := blockHeight
 		num = part1[base/tbn1]
-	} else if blockHeight <= spx2 {
+	} else if blockHeight < spx2 {
 		base := blockHeight - spx1
 		num = part2[base/tbn2]
 	} else {

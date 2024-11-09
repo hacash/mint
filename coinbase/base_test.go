@@ -7,10 +7,12 @@ import (
 )
 
 func Test_t0(t *testing.T) {
-	for i := uint64(1); i < 1000; i++ {
-		var blkh = i*10*10000 - 1
+	for i := uint64(1); i < 1000000000; i++ {
+		var blkh = i
 		var rwdn = BlockCoinBaseRewardNumber(blkh)
-		fmt.Println(i, blkh, rwdn)
+		if blkh%10000 == 0 {
+			fmt.Println(blkh, rwdn)
+		}
 	}
 }
 
